@@ -8,7 +8,9 @@ production-ready and working alternative of https://github.com/erundook/meteor-p
 has several issues. I've decided that fixing all of them will make me to re-write all code and here is what I've done
 instead.
 
-== Features and usage ==
+Features and usage
+==================
+
 1. Publication of several cursors from the same collection - union of these cursors will be published. This is done
 by storing counters for each element - in how many cursors is it presented. So, each connection requires linear amount of memory:
 
@@ -18,6 +20,7 @@ Meteor.smartPublish('users', function(id) {
   return [
     Meteor.users.find(this.userId),
     Meteor.users.find(id),
+    Items.find({author: this.userId})
   ];
 });
 
