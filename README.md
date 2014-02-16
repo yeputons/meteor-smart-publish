@@ -20,6 +20,15 @@ Meteor.smartPublish('users', function(id) {
     Meteor.users.find(id),
   ];
 });
+
+Meteor.smartPublish('items', function(l, r) {
+  check(l, Number);
+  check(r, Number);
+  return [
+    Items.find({value: {$lt: l}}),
+    Items.find({value: {$gt: r}}),
+  ];
+});
 ```
 
 2. Reactive joins. Each element may 'depend on' arbitrary elements from this or another collections (say, each Post may depend on
