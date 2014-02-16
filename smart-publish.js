@@ -47,14 +47,18 @@ Meteor.smartPublish = function(name, callback) {
       var c = cursors[i];
 
       if (!c._cursorDescription) throw new Meteor.Error("Unable to get cursor's collection name");
+
+      function publishCursor(name) {
+        observers.push(c.observeChanges({
+          added:   function(id, fields) {self.smartAdded  (name, id, fields); },
+          changed: function(id, fields) {self.changed     (name, id, fields); },
+          removed: function(id)         {self.smartRemoved(name, id);         },
+        }));
+      };
+
       var name = c._cursorDescription.collectionName;
       if (!name) throw new Meteor.Error("Unable to get cursor's collection name");
-
-      observers.push(c.observeChanges({
-        added:   function(id, fields) {self.smartAdded  (name, id, fields); },
-        changed: function(id, fields) {self.changed     (name, id, fields); },
-        removed: function(id)         {self.smartRemoved(name, id, fields); },
-      }));
+      publishCursor(name); // closure is require for the 'name' variable
     }
     this.ready();
     this.onStop(function() {
