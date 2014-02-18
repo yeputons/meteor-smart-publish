@@ -17,6 +17,7 @@ Meteor.smartPublish = function(name, callback) {
         self.added(name, id, fields);
         collections[name][id] = { count: 1 };
       } else {
+        self.changed(name, id, fields);
         collections[name][id].count++;
       }
     }
