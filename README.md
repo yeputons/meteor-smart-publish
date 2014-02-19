@@ -50,3 +50,16 @@ its author and last ten voters). Not implemented yet.
 Known issues and limitations
 ============================
 1. No reactive joins yet
+
+Running tests
+=============
+You can create stub application, add `smart-publish` package and then use `meteor test-packages` command:
+
+1. `meteor create temp-app`
+2. `cd temp-app`
+3. `mkdir packages`
+4. `cd packages`
+5. `git clone https://github.com/yeputons/smart-publish.git`
+6. `cd ..`
+7. `meteor test-packages smart-publish`
+8. Navigate to <a href="http://localhost:3000">`http://localhost:3000`</a> to run tests and see results. Hot code push should work
