@@ -6,9 +6,10 @@ Package.on_use(function (api, where) {
   api.add_files('smart-publish.js', ['server']);
 });
 
-/*Package.on_test(function (api) {
+Package.on_test(function (api) {
   api.use('smart-publish');
+  api.use('tinytest');
+  api.use('insecure');
 
-  api.add_files('smart-publish_tests.js', ['server']);
+  api.add_files('tests/several-cursors.js', ['server', 'client']);
 });
-*/
