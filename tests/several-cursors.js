@@ -2,12 +2,16 @@ ItemsA = new Meteor.Collection('ItemsA');
 ItemsB = new Meteor.Collection('ItemsB');
 
 if (Meteor.isServer) {
-  ItemsA.remove({});
-  ItemsB.remove({});
-  for (var i = 1; i <= 10; i++) {
-    ItemsA.insert({val: i, a: 1, b: 1, x: {a: 1, b: 1}});
-    ItemsB.insert({val: i, a: 1, b: 1, x: {a: 1, b: 1}});
-  }
+  Meteor.methods({
+    initDb: function() {
+      ItemsA.remove({});
+      ItemsB.remove({});
+      for (var i = 1; i <= 10; i++) {
+        ItemsA.insert({val: i, a: 1, b: 1, x: {a: 1, b: 1}});
+        ItemsB.insert({val: i, a: 1, b: 1, x: {a: 1, b: 1}});
+      }
+    }
+  });
 
   Meteor.smartPublish('items', function(l, r) {
     return [
@@ -26,9 +30,12 @@ if (Meteor.isServer) {
 
 if (Meteor.isClient) {
   Tinytest.addAsync('init', function(test, next) {
-    test.equal(ItemsA.find().count(), 0, 'ItemsA is not empty');
-    test.equal(ItemsB.find().count(), 0, 'ItemsB is not empty');
-    next();
+    Meteor.call('initDb', function(err) {
+      test.isUndefined(err, 'error during initialization: ' + err);
+      test.equal(ItemsA.find().count(), 0, 'ItemsA is not empty');
+      test.equal(ItemsB.find().count(), 0, 'ItemsB is not empty');
+      next();
+    });
   });
 
   function getVals(coll, filter) {
