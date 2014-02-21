@@ -1,9 +1,9 @@
 {
   "name": "smart-publish",
   "description": "REPLACEME - What does this package (or the original one you're wrapping) do?",
-  "homepage": "https://github.com/yeputons/smart-publish",
+  "homepage": "https://github.com/yeputons/meteor-smart-publish",
   "author": "yeputons <egor.suvorov@gmail.com>",
   "version": "0.0.1",
-  "git": "https://github.com/yeputons/smart-publish.git",
+  "git": "https://github.com/yeputons/meteor-smart-publish.git",
   "packages": {}
 }

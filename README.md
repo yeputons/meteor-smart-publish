@@ -1,4 +1,4 @@
-smart-publish
+meteor-smart-publish
 =============
 
 Rather smart publications for Meteor.
@@ -59,7 +59,7 @@ You can create stub application, add `smart-publish` package and then use `meteo
 2. `cd temp-app`
 3. `mkdir packages`
 4. `cd packages`
-5. `git clone https://github.com/yeputons/smart-publish.git`
+5. `git clone https://github.com/yeputons/meteor-smart-publish.git smart-publish`
 6. `cd ..`
 7. `meteor test-packages smart-publish`
 8. Navigate to <a href="http://localhost:3000">`http://localhost:3000`</a> to run tests and see results. Hot code push should work
