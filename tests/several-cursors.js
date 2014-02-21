@@ -6,7 +6,7 @@ if (Meteor.isServer) {
     initDb: function() {
       ItemsA.remove({});
       ItemsB.remove({});
-      for (var i = 1; i <= 10; i++) {
+      for (var i = 1; i <= 11; i++) {
         ItemsA.insert({val: i, a: 1, b: 1, x: {a: 1, b: 1}});
         ItemsB.insert({val: i, a: 1, b: 1, x: {a: 1, b: 1}});
       }
@@ -45,17 +45,17 @@ if (Meteor.isClient) {
   var subscr;
   Tinytest.addAsync('subscription start', function(test, next) {
     subscr = Meteor.subscribe('items', 4, 9, function() {
-      test.equal(getVals(ItemsA), [1,2,3,10], 'ItemsA is invalid');
-      test.equal(getVals(ItemsB), [1,2,3,4,5,6,7,8,9,10], 'ItemsB is invalid');
+      test.equal(getVals(ItemsA), [1,2,3,10,11], 'ItemsA is invalid');
+      test.equal(getVals(ItemsB), [1,2,3,4,5,6,7,8,9,10,11], 'ItemsB is invalid');
 
       test.equal(getVals(ItemsA,    {a : 1}), [1,2,3], 'ItemsA.a is invalid');
       test.equal(getVals(ItemsA, {'x.a': 1}), [1,2,3], 'ItemsA.x.a is invalid');
-      test.equal(getVals(ItemsA,    {b : 1}), [10], 'ItemsA.b is invalid');
-      test.equal(getVals(ItemsA, {'x.b': 1}), [10], 'ItemsA.x.b is invalid');
+      test.equal(getVals(ItemsA,    {b : 1}), [10,11], 'ItemsA.b is invalid');
+      test.equal(getVals(ItemsA, {'x.b': 1}), [10,11], 'ItemsA.x.b is invalid');
       test.equal(getVals(ItemsB,    {a : 1}), [1,2,3,4,5,6,7,8], 'ItemsB.a is invalid');
       test.equal(getVals(ItemsB, {'x.a': 1}), [1,2,3,4,5,6,7,8], 'ItemsB.x.a is invalid');
-      test.equal(getVals(ItemsB,    {b : 1}), [5,6,7,8,9,10], 'ItemsB.b is invalid');
-      test.equal(getVals(ItemsB, {'x.b': 1}), [5,6,7,8,9,10], 'ItemsB.x.b is invalid');
+      test.equal(getVals(ItemsB,    {b : 1}), [5,6,7,8,9,10,11], 'ItemsB.b is invalid');
+      test.equal(getVals(ItemsB, {'x.b': 1}), [5,6,7,8,9,10,11], 'ItemsB.x.b is invalid');
       next();
     });
   });
@@ -63,7 +63,7 @@ if (Meteor.isClient) {
   Tinytest.addAsync('update with element remove', function(test, next) {
     ItemsA.update(ItemsA.findOne({val: 2})._id, {$set: {val: 4}}, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
-      test.equal(getVals(ItemsA), [1,3,10], 'ItemsA');
+      test.equal(getVals(ItemsA), [1,3,10,11], 'ItemsA');
       next();
     });
   });
@@ -71,7 +71,7 @@ if (Meteor.isClient) {
   Tinytest.addAsync('update with element add', function(test, next) {
     Meteor.call('updateA6To0', function(err, res) {
       test.isUndefined(err, 'error during method call: ' + err);
-      test.equal(getVals(ItemsA), [1,3,10,0], 'ItemsA');
+      test.equal(getVals(ItemsA), [1,3,10,11,0], 'ItemsA');
       next();
     });
   });
@@ -105,12 +105,27 @@ if (Meteor.isClient) {
       next();
     });
   });
+
   Tinytest.addAsync('update with field add&remove', function(test, next) {
     var id = ItemsB.findOne({val: 10})._id;
     test.equal(ItemsB.findOne(id), {_id: id, val: 10, b: 1, x: {b: 1}}, 'initial fieldset');
     ItemsB.update(id, {$set: {val: 3}}, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
       test.equal(ItemsB.findOne(id), {_id: id, val: 3, a: 1, x: {a: 1}}, 'resulting fieldset');
+      next();
+    });
+  });
+  Tinytest.addAsync('two-stage update with field add&remove', function(test, next) {
+    var id = ItemsB.findOne({val: 11})._id;
+    test.equal(ItemsB.findOne(id), {_id: id, val: 11, b: 1, x: {b: 1}}, 'initial fieldset');
+    ItemsB.update(id, {$set: {val: 5.5}}, function(err, res) {
+      test.isUndefined(err, 'error during update: ' + err);
+      test.equal(ItemsB.findOne(id), {_id: id, val: 5.5, a: 1, b: 1, x: {a: 1, b: 1}}, 'intermediate fieldset');
+
+      ItemsB.update(id, {$set: {val: -1}}, function(err, res) {
+        test.isUndefined(err, 'error during update: ' + err);
+        test.equal(ItemsB.findOne(id), {_id: id, val: -1, a: 1, x: {a: 1}}, 'resulting fieldset');
+      });
       next();
     });
   });
