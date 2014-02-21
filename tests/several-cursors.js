@@ -1,5 +1,5 @@
-ItemsA = new Meteor.Collection('ItemsA');
-ItemsB = new Meteor.Collection('ItemsB');
+var ItemsA = new Meteor.Collection('ItemsA');
+var ItemsB = new Meteor.Collection('ItemsB');
 
 if (Meteor.isServer) {
   Meteor.methods({
