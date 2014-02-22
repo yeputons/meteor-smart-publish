@@ -31,6 +31,8 @@ Meteor.smartPublish = function(name, callback) {
       });
       self.changed(name, id, res);
     }
+
+    var counter = 0; // this is global counter for index for publishCursor(), all indices should be different
     updateChildren = function(name, id, fields, removeAll) {
       if (!relations[name]) return;
       var update = {};
@@ -42,33 +44,39 @@ Meteor.smartPublish = function(name, callback) {
       });
       _.each(update, function(flag, depId) {
         var dep = dependencies[name][depId];
+        var toRemove = [];
         if (depId in collections[name][id].children) {
           collections[name][id].children[depId].forEach(function(x, i) {
             _.each(x.activeItems, function(flag, subid) {
-              smartRemoved(x.name, '_' + name + '_' + id + '_' + i, subid);
+              toRemove.push([x.name, x.index, subid]);
             });
             x.observer.stop();
           });
         }
-        if (removeAll) return;
 
-        var cursors = dep(collections[name][id].mergedData);
-        if (isCursor(cursors)) cursors = [cursors];
-        if (!_.isArray(cursors))
-          throw new Meteor.Error("Dependency function can only return a Cursor or an array of Cursors");
+        if (!removeAll) {
+          var cursors = dep(collections[name][id].mergedData);
+          if (isCursor(cursors)) cursors = [cursors];
+          if (!_.isArray(cursors))
+            throw new Meteor.Error("Dependency function can only return a Cursor or an array of Cursors");
 
-        var observers = collections[name][id].children[depId] = [];
-        for (var i = 0; i < cursors.length; i++) {
-          var c = cursors[i];
-          if (!isCursor(c))
-            throw new Meteor.Error("Dependency function returned an array of non-Cursors");
+          var observers = collections[name][id].children[depId] = [];
+          for (var i = 0; i < cursors.length; i++) {
+            var c = cursors[i];
+            if (!isCursor(c))
+              throw new Meteor.Error("Dependency function returned an array of non-Cursors");
 
-          if (!c._cursorDescription) throw new Meteor.Error("Unable to get cursor's collection name");
-          var subname = c._cursorDescription.collectionName;
-          if (!subname) throw new Meteor.Error("Unable to get cursor's collection name");
+            if (!c._cursorDescription) throw new Meteor.Error("Unable to get cursor's collection name");
+            var subname = c._cursorDescription.collectionName;
+            if (!subname) throw new Meteor.Error("Unable to get cursor's collection name");
 
-          observers.push(publishCursor(c, subname, '_' + name + '_' + id + '_' + i));
+            observers.push(publishCursor(c, subname, '_' + counter));
+            counter++;
+          }
         }
+        toRemove.forEach(function(args) {
+          smartRemoved.apply(this, args);
+        });
       });
     }
     smartAdded = function(name, index, id, fields) {
@@ -164,7 +172,8 @@ Meteor.smartPublish = function(name, callback) {
             removed: function(id)         {delete activeItems[id]; smartRemoved(name, index, id);         },
           }),
           activeItems: activeItems,
-          name: name
+          name: name,
+          index: index
         }
       };
 
