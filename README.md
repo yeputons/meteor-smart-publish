@@ -16,6 +16,12 @@ version successfully passes them.
 Features and usage
 ==================
 
+Demonstration
+-------------
+
+You can see this package in action at <a href="http://smart-publish-demo.meteor.com/">`smart-publish-demo.meteor.com`</a>, source
+code is available in <a href="/yeputons/meteor-smart-publish-demo-basic">yeputons/meteor-smart-publish-demo-basic</a>.
+
 Installation
 ------------
 
