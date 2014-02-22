@@ -14,12 +14,18 @@ Meteor.smartPublish = function(name, callback) {
 
     updateFromData = function(name, id, fields) {
       var res = {};
+      var merged = collections[name][id].mergedData;
       _.each(fields, function(flag, key) {
         var cur = undefined;
         _.each(collections[name][id].data[key], (function(value) {
           cur = _.extend(deepCopy(value), cur);
         }));
         res[key] = cur;
+        if (_.isUndefined(cur)) {
+          delete merged[key];
+        } else {
+          merged[key] = cur;
+        }
       });
       self.changed(name, id, res);
     }
@@ -31,7 +37,7 @@ Meteor.smartPublish = function(name, callback) {
 
       if (!collections[name][id]) {
         self.added(name, id, fields);
-        collections[name][id] = { count: 1, data: {} };
+        collections[name][id] = { count: 1, data: {}, mergedData: deepCopy(fields) };
         _.each(fields, function(val, key) {
           collections[name][id].data[key] = collections[name][id].data[key] || {};
           collections[name][id].data[key][index] = deepCopy(val);
