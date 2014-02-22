@@ -170,6 +170,15 @@ if (Meteor.isClient) {
       });
     });
   });
+  Tinytest.addAsync('field unset', function(test, next) {
+    var id = ItemsB.findOne({val: 13})._id;
+    test.equal(ItemsB.findOne(id), {_id: id, val: 13, b: 1, x: {b: 1}}, 'initial fieldset');
+    ItemsB.update(id, {$unset: {'x.a': 1, b: 1}, $set: {val: 5.5}}, function(err, res) {
+      test.isUndefined(err, 'error during update: ' + err);
+      test.equal(ItemsB.findOne(id), {_id: id, val: 5.5, a: 1, x: {b: 1}}, 'resulting fieldset');
+      next();
+    });
+  });
 
   Tinytest.addAsync('subscription stop', function(test, next) {
     subscr.stop();
