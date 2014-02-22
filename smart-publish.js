@@ -88,7 +88,7 @@ Meteor.smartPublish = function(name, callback) {
 
       if (!c._cursorDescription) throw new Meteor.Error("Unable to get cursor's collection name");
 
-      function publishCursor(name, index) {
+      function publishCursor(c, name, index) {
         observers.push(c.observeChanges({
           added:   function(id, fields) {smartAdded  (name, index, id, fields); },
           changed: function(id, fields) {smartChanged(name, index, id, fields); },
@@ -98,7 +98,7 @@ Meteor.smartPublish = function(name, callback) {
 
       var name = c._cursorDescription.collectionName;
       if (!name) throw new Meteor.Error("Unable to get cursor's collection name");
-      publishCursor(name, i);
+      publishCursor(c, name, i);
     }
     this.ready();
     this.onStop(function() {
