@@ -12,4 +12,5 @@ Package.on_test(function (api) {
   api.use('insecure');
 
   api.add_files('tests/several-cursors.js', ['server', 'client']);
+  api.add_files('tests/basic-joins.js', ['server', 'client']);
 });
