@@ -11,6 +11,8 @@ Meteor.smartPublish = function(name, callback) {
   Meteor.publish(name, function() {
     var self = this;
     var collections = {};
+    var relations = {};
+    var dependencies = {};
 
     updateFromData = function(name, id, fields) {
       var res = {};
@@ -29,6 +31,39 @@ Meteor.smartPublish = function(name, callback) {
       });
       self.changed(name, id, res);
     }
+    updateChildren = function(name, id, fields) {
+      if (!relations[name]) return;
+      var update = {};
+      _.each(fields, function(flag, key) {
+        if (!relations[name][key]) return;
+        _.each(relations[name][key], function(id) {
+          update[id] = true;
+        });
+      });
+      _.each(update, function(flag, depId) {
+        var dep = dependencies[name][depId];
+        if (depId in collections[name][id].children) {
+          collections[name][id].children[depId].forEach(function(x) { x.stop(); });
+        }
+        var cursors = dep(collections[name][id].mergedData);
+        if (isCursor(cursors)) cursors = [cursors];
+        if (!_.isArray(cursors))
+          throw new Meteor.Error("Dependency function can only return a Cursor or an array of Cursors");
+
+        var observers = collections[name][id].children[depId] = [];
+        for (var i = 0; i < cursors.length; i++) {
+          var c = cursors[i];
+          if (!isCursor(c))
+            throw new Meteor.Error("Dependency function returned an array of non-Cursors");
+
+          if (!c._cursorDescription) throw new Meteor.Error("Unable to get cursor's collection name");
+          var subname = c._cursorDescription.collectionName;
+          if (!subname) throw new Meteor.Error("Unable to get cursor's collection name");
+
+          publishCursor(c, subname, '_' + name + '_' + id + '_' + i);
+        }
+      });
+    }
     smartAdded = function(name, index, id, fields) {
       if (!name)
         throw new Meteor.Error("Trying to add element to anonymous collection");
@@ -37,11 +72,12 @@ Meteor.smartPublish = function(name, callback) {
 
       if (!collections[name][id]) {
         self.added(name, id, fields);
-        collections[name][id] = { count: 1, data: {}, mergedData: deepCopy(fields) };
+        collections[name][id] = { count: 1, data: {}, mergedData: deepCopy(fields), children: {} };
         _.each(fields, function(val, key) {
           collections[name][id].data[key] = collections[name][id].data[key] || {};
           collections[name][id].data[key][index] = deepCopy(val);
         });
+        updateChildren(name, id, relations[name]);
       } else {
         _.each(fields, function(val, key) {
           collections[name][id].data[key] = collections[name][id].data[key] || {};
@@ -49,6 +85,7 @@ Meteor.smartPublish = function(name, callback) {
         });
         collections[name][id].count++;
         updateFromData(name, id, fields);
+        updateChildren(name, id, fields);
       }
     }
     smartChanged = function(name, index, id, fields) {
@@ -79,6 +116,17 @@ Meteor.smartPublish = function(name, callback) {
         });
         updateFromData(name, id, fields);
       }
+    }
+
+    self.addDependency = function(name, fields, callback) {
+      if (!_.isArray(fields)) fields = [fields];
+      relations[name] = relations[name] || {};
+      dependencies[name] = dependencies[name] || [];
+      fields.forEach(function(field) {
+        relations[name][field] = relations[name][field] || [];
+        relations[name][field].push(dependencies[name].length);
+      });
+      dependencies[name].push(callback);
     }
     
     var cursors = callback.apply(self, arguments);
