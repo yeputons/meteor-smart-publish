@@ -45,11 +45,32 @@ Reactive joins
 --------------
 
 Each element may 'depend on' arbitrary elements from this or another collections (say, each Post may depend on
-its author and last ten voters). Not implemented yet.
+its author and last ten voters):
+
+```
+Posts = new Posts('posts_collection');
+Avatars = new Avatars('avatars');
+Meteor.smartPublish('posts', function(limit) {
+  this.addDependency('posts_collection', 'authorId' /* you may specify array of fields here as well */, function(post) {
+    return Meteor.users.find(post.authorId); // Please note that callback should return cursor, don't use findOne here
+  })
+  this.addDependency('posts_collection', 'voters', function(post) {
+    return [ Meteor.users.find({_in: _.first(post.voters, 10)}) ];
+  })
+  this.addDependency('users', 'avatar', function(user) { // All dependencies are recursively pushed
+    return Avatars.find(user.avatar);
+  });
+  return Posts.find({}, {limit: limit});
+});
+```
+
+For each dependency, you should specify one or more fields that affect cursors that are returned by your callback (for example, empty array
+or `_id` if you have reverse foreign keys). When any of these fields is updated, your callback is automatically re-run, new data is fetched
+recursively, old data is dismissed. 'Diamond' joins are supported as well without any changes.
 
 Known issues and limitations
 ============================
-1. No reactive joins yet
+1. Not enough tests yet.
 
 Running tests
 =============
