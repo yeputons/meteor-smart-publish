@@ -8,7 +8,7 @@ production-ready and working alternative of https://github.com/erundook/meteor-p
 has several issues. I've decided that fixing all of them will make me to re-write all code and here is what I've done
 instead.
 
-*WARNING*: this version this lacks big corner tests and the code is relatively complex, so I kindly ask you
+_WARNING_: this version this lacks big corner tests and the code is relatively complex, so I kindly ask you
 not to use this in production, because awful things may happen in case of bugs. I'll be happy if you help me
 generate corner cases (like empty keys in JSON or `null` values) and other interesting tests, even if current
 version successfully passes them.
@@ -20,7 +20,7 @@ Demonstration
 -------------
 
 You can see this package in action at <a href="http://smart-publish-demo.meteor.com/">`smart-publish-demo.meteor.com`</a>, source
-code is available in <a href="/yeputons/meteor-smart-publish-demo-basic">yeputons/meteor-smart-publish-demo-basic</a>.
+code is available in <a href="https://github.com/yeputons/meteor-smart-publish-demo-basic">yeputons/meteor-smart-publish-demo-basic</a>.
 
 Installation
 ------------
