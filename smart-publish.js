@@ -60,7 +60,7 @@ Meteor.smartPublish = function(name, callback) {
           var subname = c._cursorDescription.collectionName;
           if (!subname) throw new Meteor.Error("Unable to get cursor's collection name");
 
-          publishCursor(c, subname, '_' + name + '_' + id + '_' + i);
+          observers.push(publishCursor(c, subname, '_' + name + '_' + id + '_' + i));
         }
       });
     }
@@ -147,16 +147,16 @@ Meteor.smartPublish = function(name, callback) {
       if (!c._cursorDescription) throw new Meteor.Error("Unable to get cursor's collection name");
 
       function publishCursor(c, name, index) {
-        observers.push(c.observeChanges({
+        return c.observeChanges({
           added:   function(id, fields) {smartAdded  (name, index, id, fields); },
           changed: function(id, fields) {smartChanged(name, index, id, fields); },
           removed: function(id)         {smartRemoved(name, index, id);         },
-        }));
+        });
       };
 
       var name = c._cursorDescription.collectionName;
       if (!name) throw new Meteor.Error("Unable to get cursor's collection name");
-      publishCursor(c, name, i);
+      observers.push(publishCursor(c, name, i));
     }
     this.ready();
     this.onStop(function() {
