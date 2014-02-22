@@ -14,7 +14,7 @@ Meteor.smartPublish = function(name, callback) {
     var relations = {};
     var dependencies = {};
 
-    updateFromData = function(name, id, fields) {
+    var updateFromData = function(name, id, fields) {
       var res = {};
       var merged = collections[name][id].mergedData;
       _.each(fields, function(flag, key) {
@@ -33,7 +33,7 @@ Meteor.smartPublish = function(name, callback) {
     }
 
     var counter = 0; // this is global counter for index for publishCursor(), all indices should be different
-    updateChildren = function(name, id, fields, removeAll) {
+    var updateChildren = function(name, id, fields, removeAll) {
       if (!relations[name]) return;
       var update = {};
       _.each(fields, function(flag, key) {
@@ -79,7 +79,7 @@ Meteor.smartPublish = function(name, callback) {
         });
       });
     }
-    smartAdded = function(name, index, id, fields) {
+    var smartAdded = function(name, index, id, fields) {
       if (!name)
         throw new Meteor.Error("Trying to add element to anonymous collection");
 
@@ -103,7 +103,7 @@ Meteor.smartPublish = function(name, callback) {
         updateChildren(name, id, fields);
       }
     }
-    smartChanged = function(name, index, id, fields) {
+    var smartChanged = function(name, index, id, fields) {
       _.each(fields, function(val, key) {
         if (val === undefined) {
           delete collections[name][id].data[key][index];
@@ -113,7 +113,7 @@ Meteor.smartPublish = function(name, callback) {
       });
       updateFromData(name, id, fields);
     }
-    smartRemoved = function(name, index, id) {
+    var smartRemoved = function(name, index, id) {
       if (!name                 ) throw new Meteor.Error("Trying to remove element from anonymous collection");
       if (!collections[name]    ) throw new Meteor.Error("Removing element from non-existing collection '" + name + "'");
       if (!collections[name][id]) throw new Meteor.Error("Removing unexisting element '" + id + "' from collection '" + name + "'");
