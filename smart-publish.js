@@ -2,6 +2,11 @@ var isCursor = function (c) {
   return c && c._publishCursor;
 };
 
+var deepCopy = function(value) {
+  // No deep-copy in _ so far, here is workaround as we work with very simple objects
+  return JSON.parse(JSON.stringify(value));
+}
+
 Meteor.smartPublish = function(name, callback) {
   Meteor.publish(name, function() {
     var self = this;
@@ -12,8 +17,7 @@ Meteor.smartPublish = function(name, callback) {
       _.each(fields, function(flag, key) {
         var cur = undefined;
         _.each(collections[name][id].data[key], (function(value) {
-          // No deep-copy so far, here is workaround as we work with very simple objects
-          cur = _.extend(JSON.parse(JSON.stringify(value)), cur);
+          cur = _.extend(deepCopy(value), cur);
         }));
         res[key] = cur;
       });
@@ -30,12 +34,12 @@ Meteor.smartPublish = function(name, callback) {
         collections[name][id] = { count: 1, data: {} };
         _.each(fields, function(val, key) {
           collections[name][id].data[key] = collections[name][id].data[key] || {};
-          collections[name][id].data[key][index] = val;
+          collections[name][id].data[key][index] = deepCopy(val);
         });
       } else {
         _.each(fields, function(val, key) {
           collections[name][id].data[key] = collections[name][id].data[key] || {};
-          collections[name][id].data[key][index] = val;
+          collections[name][id].data[key][index] = deepCopy(val);
         });
         collections[name][id].count++;
         updateFromData(name, id, fields);
@@ -46,7 +50,7 @@ Meteor.smartPublish = function(name, callback) {
         if (val === undefined) {
           delete collections[name][id].data[key][index];
         } else {
-          collections[name][id].data[key][index] = val;
+          collections[name][id].data[key][index] = deepCopy(val);
         }
       });
       updateFromData(name, id, fields);
