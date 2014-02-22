@@ -22,17 +22,17 @@ if (Meteor.isServer) {
   });
 
   Meteor.smartPublish('joins_items', function() {
-/*    this.addDependency(JoinedA, ['l', 'r'], function(fields) {
+    this.addDependency('JoinedA', ['l', 'r'], function(fields) {
       if (_.isUndefined(fields.l) || _.isUndefined(fields.r)) return [];
 
       return JoinedB.find({$and: [
-        {val: {$gt: fields.l}},
-        {val: {$lt: fields.r}}
+        {val: {$gte: fields.l}},
+        {val: {$lte: fields.r}}
       ]});
     });
-    this.addDependency(JoinedB, 'val', function(fields) {
+    this.addDependency('JoinedB', 'val', function(fields) {
       return JoinedA.find({val: 9 + fields.val});
-    });*/
+    });
     return JoinedA.find({enabled: true});
   });
 }
