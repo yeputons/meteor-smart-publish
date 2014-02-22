@@ -69,6 +69,33 @@ if (Meteor.isClient) {
     });
   });
 
+  Tinytest.addAsync('joins: enabling 4..10', function(test, next) {
+    Meteor.call('joins_setEnabled', 2, true, function(err, res) {
+      test.isUndefined(err, 'error during update: ' + err);
+      test.equal(getVals(JoinedA), [1,10,11,12,13,14,15,16,2,17,18,19], 'JoinedA is invalid');
+      test.equal(getVals(JoinedB), [1,2,3,4,5,6,7,8,9,10], 'JoinedB is invalid');
+      next();
+    });
+  });
+
+  Tinytest.addAsync('joins: disabling 1..7', function(test, next) {
+    Meteor.call('joins_setEnabled', 1, false, function(err, res) {
+      test.isUndefined(err, 'error during update: ' + err);
+      test.equal(getVals(JoinedA), [13,14,15,16,2,17,18,19], 'JoinedA is invalid');
+      test.equal(getVals(JoinedB), [4,5,6,7], 'JoinedB is invalid');
+      next();
+    });
+  });
+
+  Tinytest.addAsync('joins: disabling 4..10', function(test, next) {
+    Meteor.call('joins_setEnabled', 1, false, function(err, res) {
+      test.isUndefined(err, 'error during update: ' + err);
+      test.equal(JoinedA.find().count(), 0, 'JoinedA is not empty');
+      test.equal(JoinedB.find().count(), 0, 'JoinedB is not empty');
+      next();
+    });
+  });
+
   Tinytest.addAsync('joins: subscription stop', function(test, next) {
     subscr.stop();
     Meteor.setTimeout(function() {
