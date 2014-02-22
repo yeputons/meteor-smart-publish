@@ -1,9 +1,9 @@
 {
   "name": "smart-publish",
-  "description": "REPLACEME - What does this package (or the original one you're wrapping) do?",
+  "description": "Smart publications: reactive joins and several cursors from one collection",
   "homepage": "https://github.com/yeputons/meteor-smart-publish",
   "author": "yeputons <egor.suvorov@gmail.com>",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "git": "https://github.com/yeputons/meteor-smart-publish.git",
   "packages": {}
 }

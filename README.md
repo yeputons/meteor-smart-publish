@@ -6,10 +6,20 @@ Rather smart publications for Meteor.
 This package is developed as fast alternative of https://github.com/Diggsey/meteor-reactive-publish and
 production-ready and working alternative of https://github.com/erundook/meteor-publish-with-relations, which
 has several issues. I've decided that fixing all of them will make me to re-write all code and here is what I've done
-instead. Unfortunatelly, this package is not done yet (see 'known issues and limitations' below)
+instead.
+
+*WARNING*: this version this lacks big corner tests and the code is relatively complex, so I kindly ask you
+not to use this in production, because awful things may happen in case of bugs. I'll be happy if you help me
+generate corner cases (like empty keys in JSON or `null` values) and other interesting tests, even if current
+version successfully passes them.
 
 Features and usage
 ==================
+
+Installation
+------------
+
+Just run `mrt add smart-publish`.
 
 Several cursors publication
 ---------------------------
