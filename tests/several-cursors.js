@@ -1,15 +1,33 @@
 var ItemsA = new Meteor.Collection('ItemsA');
 var ItemsB = new Meteor.Collection('ItemsB');
+var ItemsC = new Meteor.Collection('ItemsC');
+
+var itemCValue = {
+  _id: 'the only one',
+  number0: 0,
+  number1: 123,
+  string0: '',
+  string1: 'hello',
+  bool0: false,
+  bool1: true,
+  arr0: [],
+  arr1: [1, 2, 'hi', {obj: false}, null, {'': null}],
+  arr2: [null],
+  null: null,
+  '': null
+};
 
 if (Meteor.isServer) {
   Meteor.methods({
     initDb: function() {
       ItemsA.remove({});
       ItemsB.remove({});
+      ItemsC.remove({});
       for (var i = 1; i <= 11; i++) {
         ItemsA.insert({val: i, a: 1, b: 1, x: {a: 1, b: 1}});
         ItemsB.insert({val: i, a: 1, b: 1, x: {a: 1, b: 1}});
       }
+      ItemsC.insert(itemCValue);
     }
   });
 
@@ -19,6 +37,9 @@ if (Meteor.isServer) {
       ItemsA.find({val: {$gt: r}}, {fields: {val: 1, b: 1, 'x.b': 1}}),
       ItemsB.find({val: {$lt: r}}, {fields: {val: 1, a: 1, 'x.a': 1}}),
       ItemsB.find({val: {$gt: l}}, {fields: {val: 1, b: 1, 'x.b': 1}}),
+      ItemsC.find(),
+      ItemsC.find(),
+      ItemsC.find(),
     ];
   });
   Meteor.methods({
@@ -34,6 +55,7 @@ if (Meteor.isClient) {
       test.isUndefined(err, 'error during initialization: ' + err);
       test.equal(ItemsA.find().count(), 0, 'ItemsA is not empty');
       test.equal(ItemsB.find().count(), 0, 'ItemsB is not empty');
+      test.equal(ItemsC.find().count(), 0, 'ItemsÑ is not empty');
       next();
     });
   });
@@ -58,6 +80,11 @@ if (Meteor.isClient) {
       test.equal(getVals(ItemsB, {'x.b': 1}), [5,6,7,8,9,10,11], 'ItemsB.x.b is invalid');
       next();
     });
+  });
+
+  Tinytest.addAsync('several publications of the same field', function(test, next) {
+    test.equal(ItemsC.find().fetch(), [itemCValue], 'ItemsC is incorrect');
+    next();
   });
 
   Tinytest.addAsync('update with element remove', function(test, next) {
