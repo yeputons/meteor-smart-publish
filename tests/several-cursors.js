@@ -152,8 +152,8 @@ if (Meteor.isClient) {
       ItemsB.update(id, {$set: {val: -1}}, function(err, res) {
         test.isUndefined(err, 'error during update: ' + err);
         test.equal(ItemsB.findOne(id), {_id: id, val: -1, a: 1, x: {a: 1}}, 'resulting fieldset');
+        next();
       });
-      next();
     });
   });
   Tinytest.addAsync('two-stage update with field add&remove (1->2)', function(test, next) {
@@ -166,8 +166,8 @@ if (Meteor.isClient) {
       ItemsB.update(id, {$set: {val: 13}}, function(err, res) {
         test.isUndefined(err, 'error during update: ' + err);
         test.equal(ItemsB.findOne(id), {_id: id, val: 13, b: 1, x: {b: 1}}, 'resulting fieldset');
+        next();
       });
-      next();
     });
   });
 
