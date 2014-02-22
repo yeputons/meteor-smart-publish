@@ -12,7 +12,8 @@ Meteor.smartPublish = function(name, callback) {
       _.each(fields, function(flag, key) {
         var cur = undefined;
         _.each(collections[name][id].data[key], (function(value) {
-          cur = _.extend(value, cur);
+          // No deep-copy so far, here is workaround as we work with very simple objects
+          cur = _.extend(JSON.parse(JSON.stringify(value)), cur);
         }));
         res[key] = cur;
       });
