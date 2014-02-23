@@ -3,8 +3,7 @@ var isCursor = function (c) {
 };
 
 var deepCopy = function(value) {
-  // No deep-copy in _ so far, here is workaround as we work with very simple objects
-  return JSON.parse(JSON.stringify(value));
+  return EJSON.clone(value);
 }
 
 Meteor.smartPublish = function(name, callback) {
