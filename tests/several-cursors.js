@@ -2,8 +2,12 @@ var ItemsA = new Meteor.Collection('ItemsA');
 var ItemsB = new Meteor.Collection('ItemsB');
 var ItemsC = new Meteor.Collection('ItemsC');
 
+var tempBinary = EJSON.newBinary(3);
+tempBinary[0] = 1;
+tempBinary[1] = 3;
+tempBinary[2] = 2;
 var itemCValue = {
-  _id: 'the only one',
+  _id: new Meteor.Collection.ObjectID('01234567890123456789abcd'),
   number0: 0,
   number1: 123,
   string0: '',
@@ -14,7 +18,9 @@ var itemCValue = {
   arr1: [1, 2, 'hi', {obj: false}, null, {'': null}],
   arr2: [null],
   null: null,
-  '': null
+  '': null,
+  someDate: new Date('2014-02-23T01:23:45Z'),
+  binary: tempBinary,
 };
 
 if (Meteor.isServer) {
