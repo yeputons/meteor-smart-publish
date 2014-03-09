@@ -111,6 +111,7 @@ Meteor.smartPublish = function(name, callback) {
         }
       });
       updateFromData(name, id, fields);
+      updateChildren(name, id, fields);
     }
     var smartRemoved = function(name, index, id) {
       if (!name                 ) throw new Meteor.Error("Trying to remove element from anonymous collection");
