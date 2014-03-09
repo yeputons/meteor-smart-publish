@@ -169,6 +169,7 @@ Meteor.smartPublish = function(name, callback) {
           observer: c.observeChanges({
             added:   function(id, fields) {
               activeItems[id] = 1;
+              fields['_id'] = id;
               smartAdded  (name, index, id, fields);
             },
             changed: function(id, fields) {
