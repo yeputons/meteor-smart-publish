@@ -2,8 +2,14 @@ var JoinedA = new Meteor.Collection('JoinedA');
 var JoinedB = new Meteor.Collection('JoinedB');
 
 if (Meteor.isServer) {
+  var idFieldWasNotAvailable; // How many times fields._id was undefined in addDependency callback
+  var addDependencyCount;     // How many times addDependency callback was called
+
   Meteor.methods({
     joins_initDb: function() {
+      idFieldWasNotAvailable = 0;
+      addDependencyCount = 0;
+
       JoinedA.remove({});
       JoinedB.remove({});
       for (var i = 10; i <= 20; i++) {
@@ -18,12 +24,28 @@ if (Meteor.isServer) {
     },
     joins_setEnabled: function(val, enabled) {
       JoinedA.update({val: val}, {$set: {enabled: enabled}});
+    },
+    idFieldWasAvailable: function() {
+      return {
+        fail: idFieldWasNotAvailable,
+        total: addDependencyCount
+      };
     }
   });
 
   Meteor.smartPublish('joins_items', function() {
     this.addDependency('JoinedA', ['l', 'r'], function(fields) {
       if (_.isUndefined(fields.l) || _.isUndefined(fields.r)) return [];
+
+      // Check for fields._id's correctness
+      var el = undefined;
+      if (fields._id) {
+        el = JoinedA.findOne(fields._id);
+      }
+      if (!el || el.l != fields.l || el.r != fields.r) {
+        idFieldWasNotAvailable++;
+      }
+      addDependencyCount++;
 
       return JoinedB.find({$and: [
         {val: {$gte: fields.l}},
@@ -103,5 +125,12 @@ if (Meteor.isClient) {
       test.equal(JoinedB.find().count(), 0, 'JoinedB is not empty');
       next();
     }, 100);
+  });
+
+  Tinytest.addAsync('joins: fields._id was correct in all addDependency callbacks', function(test, next) {
+    Meteor.call('idFieldWasAvailable', function(err, res) {
+      test.equal(res.fail, 0, 'was not available or invalid in some of ' + res.total + ' callbacks');
+      next();
+    });
   });
 }
