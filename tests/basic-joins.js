@@ -109,6 +109,15 @@ if (Meteor.isClient) {
     });
   });
 
+  Tinytest.addAsync('joins: changing 4..10 to 4..8', function(test, next) {
+    JoinedA.update(JoinedA.findOne({l: 4, r: 10})._id, {$set: {r: 8}}, function(err, res) {
+      test.isUndefined(err, 'error during update: ' + err);
+      test.equal(getVals(JoinedA), [13,14,15,16,2,17], 'JoinedA is invalid');
+      test.equal(getVals(JoinedB), [4,5,6,7,8], 'JoinedB is invalid');
+      next();
+    });
+  });
+
   Tinytest.addAsync('joins: disabling 4..10', function(test, next) {
     Meteor.call('joins_setEnabled', 2, false, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
