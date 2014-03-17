@@ -103,11 +103,13 @@ Meteor.smartPublish = function(name, callback) {
       }
     }
     var smartChanged = function(name, index, id, fields) {
+      var data = collections[name][id].data;
       _.each(fields, function(val, key) {
+        if (!data[key]) data[key] = {};
         if (val === undefined) {
-          delete collections[name][id].data[key][index];
+          delete data[key][index];
         } else {
-          collections[name][id].data[key][index] = deepCopy(val);
+          data[key][index] = deepCopy(val);
         }
       });
       updateFromData(name, id, fields);
