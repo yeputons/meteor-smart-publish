@@ -87,6 +87,8 @@ recursively, old data is dismissed. 'Diamond' joins are supported as well withou
 Known issues and limitations
 ============================
 1. Not enough tests yet.
+2. Because I use links counter for tracking dependencies, circular dependencies may preserve some elements from deletion. Say, if you publish A, B depends on A, and B and C depends
+on each other, removal of A won't remove B and C from the resulting set as they still have some incoming dependencies.
 
 Running tests
 =============
