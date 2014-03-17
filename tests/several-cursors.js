@@ -61,7 +61,7 @@ if (Meteor.isClient) {
       test.isUndefined(err, 'error during initialization: ' + err);
       test.equal(ItemsA.find().count(), 0, 'ItemsA is not empty');
       test.equal(ItemsB.find().count(), 0, 'ItemsB is not empty');
-      test.equal(ItemsC.find().count(), 0, 'Items— is not empty');
+      test.equal(ItemsC.find().count(), 0, 'ItemsC is not empty');
       next();
     });
   });
