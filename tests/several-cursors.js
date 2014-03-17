@@ -93,6 +93,28 @@ if (Meteor.isClient) {
     next();
   });
 
+  var unsetFieldTest = function(test, next) {
+    ItemsC.update(ItemsC.findOne()._id, {$unset: {someCounter: 1}}, function(err, res) {
+      test.isUndefined(err, 'error during first update: ' + err);
+      test.equal(ItemsC.find().fetch(), [itemCValue], 'ItemsC is incorrect after first unset');
+
+      ItemsC.update(ItemsC.findOne()._id, {$unset: {someCounter: 1}}, function(err, res) {
+        test.isUndefined(err, 'error during second update: ' + err);
+        test.equal(ItemsC.find().fetch(), [itemCValue], 'ItemsC is incorrect after second unset');
+        next();
+      });
+    });
+  }
+  Tinytest.addAsync('unset of unexisting field', unsetFieldTest);
+  Tinytest.addAsync('update of unexisting field', function(test, next) {
+    ItemsC.update(ItemsC.findOne()._id, {$inc: {someCounter: 12}}, function(err, res) {
+      test.isUndefined(err, 'error during update: ' + err);
+      test.equal(ItemsC.find().fetch()[0].someCounter, 12, 'ItemsC[0].someCounter is incorrect');
+      next();
+    });
+  });
+  Tinytest.addAsync('unset of existing field', unsetFieldTest);
+
   Tinytest.addAsync('update with element remove', function(test, next) {
     ItemsA.update(ItemsA.findOne({val: 2})._id, {$set: {val: 4}}, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
