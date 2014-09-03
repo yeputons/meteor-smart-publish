@@ -142,6 +142,9 @@ Meteor.smartPublish = function(name, callback) {
       relations[name] = relations[name] || {};
       dependencies[name] = dependencies[name] || [];
       fields.forEach(function(field) {
+        if (field.indexOf(".") != -1) { // See #8
+          field = field.substr(0, field.indexOf("."));
+        }
         relations[name][field] = relations[name][field] || [];
         relations[name][field].push(dependencies[name].length);
       });
