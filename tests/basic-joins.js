@@ -15,10 +15,10 @@ if (Meteor.isServer) {
       for (var i = 10; i <= 20; i++) {
         JoinedA.insert({val: i});
       }
-      JoinedA.insert({val: 1, l: 1, r: 7});
-      JoinedA.insert({val: 2, l: 4, r: 10});
+      JoinedA.insert({val: 1, l: 1, r: 7 , extra: {val: 14}});
+      JoinedA.insert({val: 2, l: 4, r: 10, extra: {val: 15}});
 
-      for (var i = 1; i <= 10; i++) {
+      for (var i = 1; i <= 15; i++) {
         JoinedB.insert({val: i});
       }
     },
@@ -51,6 +51,10 @@ if (Meteor.isServer) {
         {val: {$gte: fields.l}},
         {val: {$lte: fields.r}}
       ]});
+    });
+    this.addDependency('JoinedA', 'extra.val', function(fields) {
+      if (_.isUndefined(fields.extra) || _.isUndefined(fields.extra.val)) return [];
+      return JoinedB.find({val: fields.extra.val});
     });
     this.addDependency('JoinedB', 'val', function(fields) {
       return JoinedA.find({val: 9 + fields.val});
@@ -86,7 +90,7 @@ if (Meteor.isClient) {
     Meteor.call('joins_setEnabled', 1, true, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
       test.equal(getVals(JoinedA), [1,10,11,12,13,14,15,16], 'JoinedA is invalid');
-      test.equal(getVals(JoinedB), [1,2,3,4,5,6,7], 'JoinedB is invalid');
+      test.equal(getVals(JoinedB), [1,2,3,4,5,6,7,14], 'JoinedB is invalid');
       next();
     });
   });
@@ -95,7 +99,7 @@ if (Meteor.isClient) {
     Meteor.call('joins_setEnabled', 2, true, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
       test.equal(getVals(JoinedA), [1,10,11,12,13,14,15,16,2,17,18,19], 'JoinedA is invalid');
-      test.equal(getVals(JoinedB), [1,2,3,4,5,6,7,8,9,10], 'JoinedB is invalid');
+      test.equal(getVals(JoinedB), [1,2,3,4,5,6,7,14,8,9,10,15], 'JoinedB is invalid');
       next();
     });
   });
@@ -104,7 +108,7 @@ if (Meteor.isClient) {
     Meteor.call('joins_setEnabled', 1, false, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
       test.equal(getVals(JoinedA), [13,14,15,16,2,17,18,19], 'JoinedA is invalid');
-      test.equal(getVals(JoinedB), [4,5,6,7,8,9,10], 'JoinedB is invalid');
+      test.equal(getVals(JoinedB), [4,5,6,7,8,9,10,15], 'JoinedB is invalid');
       next();
     });
   });
@@ -113,7 +117,7 @@ if (Meteor.isClient) {
     JoinedA.update(JoinedA.findOne({l: 4, r: 10})._id, {$set: {r: 8}}, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
       test.equal(getVals(JoinedA), [13,14,15,16,2,17], 'JoinedA is invalid');
-      test.equal(getVals(JoinedB), [4,5,6,7,8], 'JoinedB is invalid');
+      test.equal(getVals(JoinedB), [4,5,6,7,8,15], 'JoinedB is invalid');
       next();
     });
   });
