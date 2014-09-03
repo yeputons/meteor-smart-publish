@@ -1,3 +1,7 @@
+## v0.1.5
+
+* Bug fix (#8): now you can specify nested fields (like 'profile.avatar') as parameter for `addDependency`. However, it tracks the whole subdocument, not the only field, which is still not the best option for performance.
+
 ## v0.1.4
 
 * Bug fix (#4): now adding new fields to the items published does not crash the server
