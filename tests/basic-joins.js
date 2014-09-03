@@ -122,6 +122,51 @@ if (Meteor.isClient) {
     });
   });
 
+  Tinytest.addAsync('joins: adding nested property from scratch', function(test, next) {
+    JoinedA.update(JoinedA.findOne({val: 14})._id, {$set: {'extra.val': 12}}, function(err, res) {
+      test.isUndefined(err, 'error during update: ' + err);
+      test.equal(getVals(JoinedA), [13,14,15,16,2,17], 'JoinedA is invalid');
+      test.equal(getVals(JoinedB), [4,5,6,7,8,15,12], 'JoinedB is invalid');
+      next();
+    });
+  });
+
+  Tinytest.addAsync('joins: adding invalid nested property holder', function(test, next) {
+    JoinedA.update(JoinedA.findOne({val: 14})._id, {$set: {'extra': 'invalid'}}, function(err, res) {
+      test.isUndefined(err, 'error during update: ' + err);
+      test.equal(getVals(JoinedA), [13,14,15,16,2,17], 'JoinedA is invalid');
+      test.equal(getVals(JoinedB), [4,5,6,7,8,15], 'JoinedB is invalid');
+      next();
+    });
+  });
+
+  Tinytest.addAsync('joins: adding nested property', function(test, next) {
+    JoinedA.update(JoinedA.findOne({val: 14})._id, {$set: {'extra': {'val': 13}}}, function(err, res) {
+      test.isUndefined(err, 'error during update: ' + err);
+      test.equal(getVals(JoinedA), [13,14,15,16,2,17], 'JoinedA is invalid');
+      test.equal(getVals(JoinedB), [4,5,6,7,8,15,13], 'JoinedB is invalid');
+      next();
+    });
+  });
+
+  Tinytest.addAsync('joins: changing nested property', function(test, next) {
+    JoinedA.update(JoinedA.findOne({val: 14})._id, {$set: {'extra.val': 14}}, function(err, res) {
+      test.isUndefined(err, 'error during update: ' + err);
+      test.equal(getVals(JoinedA), [13,14,15,16,2,17], 'JoinedA is invalid');
+      test.equal(getVals(JoinedB), [4,5,6,7,8,15,14], 'JoinedB is invalid');
+      next();
+    });
+  });
+
+  Tinytest.addAsync('joins: removing nested property holder', function(test, next) {
+    JoinedA.update(JoinedA.findOne({val: 14})._id, {$unset: {'extra': 1}}, function(err, res) {
+      test.isUndefined(err, 'error during update: ' + err);
+      test.equal(getVals(JoinedA), [13,14,15,16,2,17], 'JoinedA is invalid');
+      test.equal(getVals(JoinedB), [4,5,6,7,8,15], 'JoinedB is invalid');
+      next();
+    });
+  });
+
   Tinytest.addAsync('joins: disabling 4..10', function(test, next) {
     Meteor.call('joins_setEnabled', 2, false, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
