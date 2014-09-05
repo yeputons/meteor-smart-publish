@@ -20,12 +20,12 @@ Demonstration
 -------------
 
 You can see this package in action at <a href="http://smart-publish-demo.meteor.com/">`smart-publish-demo.meteor.com`</a>, source
-code is available in <a href="https://github.com/yeputons/meteor-smart-publish-demo-basic">yeputons/meteor-smart-publish-demo-basic</a>.
+code is available in <a href="https://github.com/yeputons/meteor-smart-publish-demo-basic">yeputons/meteor-smart-publish-demo-basic</a> (for Meteor<0.9.0 and Meteorite for now).
 
 Installation
 ------------
 
-Just run `mrt add smart-publish`.
+Just run `meteor add mrt:smart-publish` in Meteor >=0.9.0 or `mrt add smart-publish` if you use Meteorite.
 
 Several cursors publication
 ---------------------------
@@ -94,6 +94,13 @@ is not the best option for performance.
 
 Running tests
 =============
+
+Meteor >=0.9.0
+--------------
+Not written yet
+
+Meteor <0.9.0
+-------------
 You can create stub application, add `smart-publish` package and then use `meteor test-packages` command:
 
 1. `meteor create temp-app`
