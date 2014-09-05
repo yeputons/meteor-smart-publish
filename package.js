@@ -2,7 +2,7 @@ Package.describe({
   summary: "Smart publications with joins and multiple cursors from the same collection",
   version: "0.1.5",
   git: "https://github.com/yeputons/meteor-smart-publish/",
-  name: "yeputons:smart-publish"
+  name: "mrt:smart-publish"
 });
 
 Package.on_use(function (api, where) {
