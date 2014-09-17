@@ -10,7 +10,11 @@ Package.on_use(function (api, where) {
 });
 
 Package.on_test(function (api) {
-  api.use('smart-publish');
+  if (api.versionsFrom) { // Meteor >= 0.9.0 and new packaging system
+    api.use('mrt:smart-publish');
+  } else { // Meteorite
+    api.use('smart-publish');
+  }
   api.use('tinytest');
   api.use('insecure');
 
