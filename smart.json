@@ -1,9 +1,0 @@
-{
-  "name": "smart-publish",
-  "description": "Smart publications: reactive joins and several cursors from one collection",
-  "homepage": "https://github.com/yeputons/meteor-smart-publish",
-  "author": "yeputons <egor.suvorov@gmail.com>",
-  "version": "0.1.5",
-  "git": "https://github.com/yeputons/meteor-smart-publish.git",
-  "packages": {}
-}
