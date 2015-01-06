@@ -25,7 +25,7 @@ code is available in <a href="https://github.com/yeputons/meteor-smart-publish-d
 Installation
 ------------
 
-Just run `meteor add mrt:smart-publish` in Meteor >=0.9.0 or `mrt add smart-publish` if you use Meteorite.
+Just run `meteor add mrt:smart-publish`.
 
 Several cursors publication
 ---------------------------
@@ -95,19 +95,4 @@ is not the best option for performance.
 Running tests
 =============
 
-Meteor >=0.9.0
---------------
-Not written yet
-
-Meteor <0.9.0
--------------
-You can create stub application, add `smart-publish` package and then use `meteor test-packages` command:
-
-1. `meteor create temp-app`
-2. `cd temp-app`
-3. `mkdir packages`
-4. `cd packages`
-5. `git clone https://github.com/yeputons/meteor-smart-publish.git smart-publish`
-6. `cd ..`
-7. `meteor test-packages smart-publish`
-8. Navigate to <a href="http://localhost:3000">`http://localhost:3000`</a> to run tests and see results. Hot code push should work
+Run `meteor test-packages ./` in a directory with package and navigate to <a href="http://localhost:3000">`http://localhost:3000`</a> to run tests and see results. Hot code push should work.
