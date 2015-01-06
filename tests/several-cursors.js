@@ -1,13 +1,13 @@
-var ItemsA = new Meteor.Collection('ItemsA');
-var ItemsB = new Meteor.Collection('ItemsB');
-var ItemsC = new Meteor.Collection('ItemsC');
+var ItemsA = new Mongo.Collection('ItemsA');
+var ItemsB = new Mongo.Collection('ItemsB');
+var ItemsC = new Mongo.Collection('ItemsC');
 
 var tempBinary = EJSON.newBinary(3);
 tempBinary[0] = 1;
 tempBinary[1] = 3;
 tempBinary[2] = 2;
 var itemCValue = {
-  _id: new Meteor.Collection.ObjectID('01234567890123456789abcd'),
+  _id: new Mongo.ObjectID('01234567890123456789abcd'),
   number0: 0,
   number1: 123,
   string0: '',

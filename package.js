@@ -17,6 +17,7 @@ Package.on_test(function (api) {
   }
   api.use('tinytest');
   api.use('insecure');
+  api.use('meteor-platform');
 
   api.add_files('tests/several-cursors.js', ['server', 'client']);
   api.add_files('tests/basic-joins.js', ['server', 'client']);

@@ -1,5 +1,5 @@
-var JoinedA = new Meteor.Collection('JoinedA');
-var JoinedB = new Meteor.Collection('JoinedB');
+var JoinedA = new Mongo.Collection('JoinedA');
+var JoinedB = new Mongo.Collection('JoinedB');
 
 if (Meteor.isServer) {
   var idFieldWasNotAvailable; // How many times fields._id was undefined in addDependency callback
