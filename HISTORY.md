@@ -1,3 +1,7 @@
+## v0.1.7
+* README updated with new information about demo (it works with latest Meteor now)
+* `.versions` was added to gitignore
+
 ## v0.1.6
 * Removed support of Meteor <0.9.1 and Meteorite
 * `versions.json` was removed

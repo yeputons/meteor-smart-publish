@@ -20,7 +20,7 @@ Demonstration
 -------------
 
 You can see this package in action at <a href="http://smart-publish-demo.meteor.com/">`smart-publish-demo.meteor.com`</a>, source
-code is available in <a href="https://github.com/yeputons/meteor-smart-publish-demo-basic">yeputons/meteor-smart-publish-demo-basic</a> (for Meteor<0.9.0 and Meteorite for now).
+code is available in <a href="https://github.com/yeputons/meteor-smart-publish-demo-basic">yeputons/meteor-smart-publish-demo-basic</a>.
 
 Installation
 ------------
