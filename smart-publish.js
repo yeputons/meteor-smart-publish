@@ -96,6 +96,27 @@ BaseCollectionItem.prototype.updateFromData = function(fields) {
   this.publication.changed(this.collection.name, this.id, res);
 }
 
+function CursorWrapper(cursor, collection) {
+  this.activeItems = {};
+  this.collection = collection;
+  this.index = Random.id();
+  var self = this;
+  this.observer = cursor.observeChanges({
+    added:   function(id, fields) {
+      self.activeItems[id] = 1;
+      fields['_id'] = id;
+      collection.smartAdded  (self.index, id, fields);
+    },
+    changed: function(id, fields) {
+      collection.smartChanged(self.index, id, fields);
+    },
+    removed: function(id) {
+      delete self.activeItems[id];
+      collection.smartRemoved(self.index, id);
+    },
+  })
+};
+
 Meteor.smartPublish = function(name, callback) {
   Meteor.publish(name, function() {
     var publication = this;
@@ -193,27 +214,6 @@ Meteor.smartPublish = function(name, callback) {
       var c = cursors[i];
 
       if (!c._cursorDescription) throw new Meteor.Error("Unable to get cursor's collection name");
-
-      function CursorWrapper(cursor, collection) {
-        this.activeItems = {};
-        this.collection = collection;
-        this.index = Random.id();
-        var self = this;
-        this.observer = cursor.observeChanges({
-          added:   function(id, fields) {
-            self.activeItems[id] = 1;
-            fields['_id'] = id;
-            collection.smartAdded  (self.index, id, fields);
-          },
-          changed: function(id, fields) {
-            collection.smartChanged(self.index, id, fields);
-          },
-          removed: function(id) {
-            delete self.activeItems[id];
-            collection.smartRemoved(self.index, id);
-          },
-        })
-      };
 
       var name = c._cursorDescription.collectionName;
       if (!name) throw new Meteor.Error("Unable to get cursor's collection name");
