@@ -1,3 +1,6 @@
+## vNEXT
+* #9: now `this.added`/`this.changed`/`this.removed` callbacks can be called in both publish function and dependency functions: it's treated as if one more cursor were returned, so you can both return cursors and use these callbacks
+
 ## v0.1.8
 * Some refactoring was done
 * Now elements are added to publication _after_ all dependencies and removed _before_ all dependencies (contrary to what was before); that is, all dependencies are resolved at any particular moment of time

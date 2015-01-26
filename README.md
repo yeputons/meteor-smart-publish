@@ -84,6 +84,12 @@ For each dependency, you should specify one or more fields that affect cursors t
 or `_id` if you have reverse foreign keys). When any of these fields is updated, your callback is automatically re-run, new data is fetched
 recursively, old data is dismissed. 'Diamond' joins are supported as well without any changes.
 
+Custom datasets instead of cursors
+----------------------------------
+As mentioned in #9, there can be some situations where you want to customize data set: you may want to alter data sent to client
+in some way or do even more evil stuff with `this.added`/`this.changed`/`this.removed` callbacks. You're free to use these callbacks
+both in the publish function and in dependency functions.
+
 Known issues and limitations
 ============================
 1. Not enough tests yet.
