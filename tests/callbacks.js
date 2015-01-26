@@ -17,25 +17,27 @@ if (Meteor.isServer) {
     },
   });
 
+  function AlteringObserver(collectionName, uplink) {
+    this.added = function(id, fields) {
+      fields.l = fields.val * 2;
+      fields.r = fields.val * 2 + 1;
+      uplink.added(collectionName, id, fields);
+    };
+    this.changed = function(id, fields) {
+      uplink.changed(collectionName, id, fields);
+    };
+    this.removed = function(id) {
+      uplink.removed(collectionName);
+    }
+  }
+
   Meteor.smartPublish('callbacks_items', function() {
     this.addDependency('CallbacksA', ['l', 'r'], function(fields) {
       return CallbacksA.find({val: {$in: [fields.l, fields.r]}});
     });
 
     var self = this;
-    var handle = CallbacksA.find({enabled: true}).observeChanges({
-      added: function(id, fields) {
-        fields.l = fields.val * 2;
-        fields.r = fields.val * 2 + 1;
-        self.added("CallbacksA", id, fields);
-      },
-      changed: function(id, fields) {
-        self.changed("CallbacksA", id, fields);
-      },
-      removed: function(id) {
-        self.removed("CallbacksA", id);
-      }
-    });
+    var handle = CallbacksA.find({enabled: true}).observeChanges(new AlteringObserver('CallbacksA', self));
     self.ready();
     self.onStop(function() {
       handle.stop();
