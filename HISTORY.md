@@ -1,6 +1,7 @@
-## vNEXT
+## v0.1.8
 * Some refactoring was done
 * Now elements are added to publication _after_ all dependencies and removed _before_ all dependencies (contrary to what was before); that is, all dependencies are resolved at any particular moment of time
+* #6 was fixed: now you can use Mongo.ObjectID together with strings as ids of elements
 
 ## v0.1.7
 * README updated with new information about demo (it works with latest Meteor now)
