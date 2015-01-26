@@ -103,6 +103,7 @@ Meteor.smartPublish = function(name, callback) {
     function getCollectionByName(name) {
       return collections[name] = collections[name] || new Collection(name);
     }
+    publication.getCollectionByName = getCollectionByName;
 
     function Collection() {
       BaseCollection.apply(this, arguments);
@@ -153,11 +154,11 @@ Meteor.smartPublish = function(name, callback) {
             var subname = c._cursorDescription.collectionName;
             if (!subname) throw new Meteor.Error("Unable to get cursor's collection name");
 
-            observers.push(new CursorWrapper(c, getCollectionByName(subname)));
+            observers.push(new CursorWrapper(c, itemm.collection.publication.getCollectionByName(subname)));
           }
         }
         toRemove.forEach(function(args) {
-          Collection.prototype.smartRemoved.apply(args[0], args.slice(1));
+          args[0].smartRemoved(args[1], args[2]);
         });
       });
     }
