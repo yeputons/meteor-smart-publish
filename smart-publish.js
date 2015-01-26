@@ -19,7 +19,7 @@ BaseCollection.prototype.smartAdded = function(index, id, fields) {
   var self = this;
   if (!self[id]) {
     self.publication.added(self.name, id, fields);
-    self[id] = new self.publication.CollectionItem(id, self, fields, index);
+    self[id] = new CollectionItem(id, self, fields, index);
     self[id].updateChildren(self.relations);
   } else {
     _.each(fields, function(val, key) {
@@ -64,7 +64,7 @@ BaseCollection.prototype.smartRemoved = function(index, id) {
   }
 }
 
-function BaseCollectionItem(id, collection, fields, index) {
+function CollectionItem(id, collection, fields, index) {
   this.id = id;
   this.collection = collection;
   this.count = 1;
@@ -77,7 +77,7 @@ function BaseCollectionItem(id, collection, fields, index) {
     self.data[key][index] = deepCopy(val);
   });
 }
-BaseCollectionItem.prototype.updateFromData = function(fields) {
+CollectionItem.prototype.updateFromData = function(fields) {
   var res = {};
   var merged = this.mergedData;
   var self = this;
@@ -93,9 +93,9 @@ BaseCollectionItem.prototype.updateFromData = function(fields) {
       merged[key] = cur;
     }
   });
-  this.publication.changed(this.collection.name, this.id, res);
+  this.collection.publication.changed(this.collection.name, this.id, res);
 }
-BaseCollectionItem.prototype.updateChildren = function(fields, removeAll) {
+CollectionItem.prototype.updateChildren = function(fields, removeAll) {
   var self = this;
   var update = {};
   _.each(fields, function(flag, key) {
@@ -175,14 +175,6 @@ Meteor.smartPublish = function(name, callback) {
     }
     Collection.prototype = Object.create(BaseCollection.prototype);
     Collection.prototype.publication = publication;
-
-    function CollectionItem() {
-      BaseCollectionItem.apply(this, arguments);
-    }
-    CollectionItem.prototype = Object.create(BaseCollectionItem.prototype);
-    CollectionItem.prototype.publication = publication;
-
-    publication.CollectionItem = CollectionItem;
 
     publication.addDependency = function(name, fields, callback) {
       if (!_.isArray(fields)) fields = [fields];
