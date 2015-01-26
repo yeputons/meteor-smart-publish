@@ -23,17 +23,19 @@ BaseCollection.prototype.smartAdded = function(dependencyCursorId, id, fields) {
     items[id].updateChildren(this.relations);
     this.publication.added(this.name, id, fields);
   } else {
+    var itemm = items[id];
     _.each(fields, function(val, key) {
-      items[id].data[key] = items[id].data[key] || {};
-      items[id].data[key][dependencyCursorId] = deepCopy(val);
+      itemm.data[key] = itemm.data[key] || {};
+      itemm.data[key][dependencyCursorId] = deepCopy(val);
     });
-    items[id].count++;
-    items[id].updateFromData(fields);
-    items[id].updateChildren(fields);
+    itemm.count++;
+    itemm.updateFromData(fields);
+    itemm.updateChildren(fields);
   }
 }
 BaseCollection.prototype.smartChanged = function(dependencyCursorId, id, fields) {
-  var data = this.items[id].data;
+  var itemm = this.items[id];
+  var data = itemm.data;
   _.each(fields, function(val, key) {
     data[key] = data[key] || {};
     if (val === undefined) {
@@ -42,28 +44,29 @@ BaseCollection.prototype.smartChanged = function(dependencyCursorId, id, fields)
       data[key][dependencyCursorId] = deepCopy(val);
     }
   });
-  this.items[id].updateFromData(fields);
-  this.items[id].updateChildren(fields);
+  itemm.updateFromData(fields);
+  itemm.updateChildren(fields);
 }
 BaseCollection.prototype.smartRemoved = function(dependencyCursorId, id) {
-  if (!this.items[id]) {
+  var itemm = this.items[id];
+  if (!itemm) {
     throw new Meteor.Error("Removing unexisting element '" + id + "' from collection '" + this.name + "'");
   }
 
-  if (!--this.items[id].count) { // If reference counter was decremented to zero
+  if (!--itemm.count) { // If reference counter was decremented to zero
     this.publication.removed(this.name, id);
-    this.items[id].updateChildren(this.relations, true);
+    itemm.updateChildren(this.relations, true);
     delete this.items[id];
   } else {
     var fields = {};
-    _.each(this.items[id].data, function(vals, key) {
+    _.each(itemm.data, function(vals, key) {
       if (dependencyCursorId in vals) {
         fields[key] = 1;
         delete vals[dependencyCursorId];
       }
     });
-    this.items[id].updateFromData(fields);
-    this.items[id].updateChildren(fields);
+    itemm.updateFromData(fields);
+    itemm.updateChildren(fields);
   }
 }
 
