@@ -18,8 +18,9 @@ function Collection(name) {
   return res;
 }
 
-function CollectionItem(id, fields, index) {
+function CollectionItem(id, collection, fields, index) {
   this.id = id;
+  this.collection = collection;
   this.count = 1;
   this.data = {};
   this.mergedData = deepCopy(fields);
@@ -39,12 +40,12 @@ Meteor.smartPublish = function(name, callback) {
       return collections[name] = collections[name] || new Collection(name);
     }
 
-    var updateFromData = function(collection, id, fields) {
+    var updateFromData = function(itemm, fields) {
       var res = {};
-      var merged = collection[id].mergedData;
+      var merged = itemm.mergedData;
       _.each(fields, function(flag, key) {
         var cur = undefined;
-        _.each(collection[id].data[key], (function(value) {
+        _.each(itemm.data[key], (function(value) {
           cur = _.extend(deepCopy(value), cur);
         }));
         res[key] = cur;
@@ -54,22 +55,22 @@ Meteor.smartPublish = function(name, callback) {
           merged[key] = cur;
         }
       });
-      self.changed(collection.name, id, res);
+      self.changed(itemm.collection.name, itemm.id, res);
     }
 
     var counter = 0; // this is global counter for index for CursorWrapper(), all indices should be different
-    var updateChildren = function(collection, id, fields, removeAll) {
+    var updateChildren = function(itemm, fields, removeAll) {
       var update = {};
       _.each(fields, function(flag, key) {
-        if (!collection.relations[key]) return;
-        _.each(collection.relations[key], function(dep) {
+        if (!itemm.collection.relations[key]) return;
+        _.each(itemm.collection.relations[key], function(dep) {
           update[dep.id] = dep;
         });
       });
       _.each(update, function(dep) {
         var toRemove = [];
-        if (dep.id in collection[id].children) {
-          collection[id].children[dep.id].forEach(function(x, i) {
+        if (dep.id in itemm.children) {
+          itemm.children[dep.id].forEach(function(x, i) {
             _.each(x.activeItems, function(flag, subid) {
               toRemove.push([x.collection, x.index, subid]);
             });
@@ -78,12 +79,12 @@ Meteor.smartPublish = function(name, callback) {
         }
 
         if (!removeAll) {
-          var cursors = dep.callback(collection[id].mergedData);
+          var cursors = dep.callback(itemm.mergedData);
           if (isCursor(cursors)) cursors = [cursors];
           if (!_.isArray(cursors))
             throw new Meteor.Error("Dependency function can only return a Cursor or an array of Cursors");
 
-          var observers = collection[id].children[dep.id] = [];
+          var observers = itemm.children[dep.id] = [];
           for (var i = 0; i < cursors.length; i++) {
             var c = cursors[i];
             if (!isCursor(c))
@@ -105,16 +106,16 @@ Meteor.smartPublish = function(name, callback) {
     var smartAdded = function(collection, index, id, fields) {
       if (!collection[id]) {
         self.added(collection.name, id, fields);
-        collection[id] = new CollectionItem(id, fields, index);
-        updateChildren(collection, id, collection.relations);
+        collection[id] = new CollectionItem(id, collection, fields, index);
+        updateChildren(collection[id], collection.relations);
       } else {
         _.each(fields, function(val, key) {
           collection[id].data[key] = collection[id].data[key] || {};
           collection[id].data[key][index] = deepCopy(val);
         });
         collection[id].count++;
-        updateFromData(collection, id, fields);
-        updateChildren(collection, id, fields);
+        updateFromData(collection[id], fields);
+        updateChildren(collection[id], fields);
       }
     }
     var smartChanged = function(collection, index, id, fields) {
@@ -127,14 +128,14 @@ Meteor.smartPublish = function(name, callback) {
           data[key][index] = deepCopy(val);
         }
       });
-      updateFromData(collection, id, fields);
-      updateChildren(collection, id, fields);
+      updateFromData(collection[id], fields);
+      updateChildren(collection[id], fields);
     }
     var smartRemoved = function(collection, index, id) {
       if (!collection[id]) throw new Meteor.Error("Removing unexisting element '" + id + "' from collection '" + collection.name + "'");
 
       if (!--collection[id].count) { // If reference counter was decremented to zero
-        updateChildren(collection, id, collection.relations, true);
+        updateChildren(collection[id], collection.relations, true);
         delete collection[id];
         self.removed(collection.name, id);
       } else {
@@ -145,8 +146,8 @@ Meteor.smartPublish = function(name, callback) {
             delete vals[index];
           }
         });
-        updateFromData(collection, id, fields);
-        updateChildren(collection, id, fields);
+        updateFromData(collection[id], fields);
+        updateChildren(collection[id], fields);
       }
     }
 
