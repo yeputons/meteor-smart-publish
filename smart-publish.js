@@ -83,7 +83,7 @@ CollectionItem.prototype.updateFromData = function(fields) {
   var res = {};
   var merged = this.mergedData;
   var self = this;
-  _.each(fields, function(flag, key) {
+  for (var key in fields) {
     var cur = undefined;
     _.each(self.data[key], (function(value) {
       cur = _.extend(deepCopy(value), cur);
@@ -94,24 +94,24 @@ CollectionItem.prototype.updateFromData = function(fields) {
     } else {
       merged[key] = cur;
     }
-  });
+  };
   this.collection.publication.changed(this.collection.name, this.id, res);
 }
 CollectionItem.prototype.updateChildren = function(fields, removeAll) {
   var self = this;
   var update = {};
-  _.each(fields, function(flag, key) {
+  for (var key in fields) {
     _.each(self.collection.relations[key], function(dep) {
       update[dep.id] = dep;
     });
-  });
+  };
   _.each(update, function(dep) {
     var toRemove = [];
     if (dep.id in self.children) {
       self.children[dep.id].forEach(function(x, i) {
-        _.each(x.activeItems, function(flag, subid) {
+        for (subid in x.activeItems) {
           toRemove.push([x.collection, x.dependencyCursorId, subid]);
-        });
+        };
         x.observer.stop();
       });
     }
@@ -124,8 +124,7 @@ CollectionItem.prototype.updateChildren = function(fields, removeAll) {
       }
 
       var observers = self.children[dep.id] = [];
-      for (var i = 0; i < cursors.length; i++) {
-        var c = cursors[i];
+      _.each(cursors, function(c) {
         if (!isCursor(c)) {
           throw new Meteor.Error("Dependency function returned an array of non-Cursors");
         }
@@ -139,7 +138,7 @@ CollectionItem.prototype.updateChildren = function(fields, removeAll) {
         }
 
         observers.push(new CursorWrapper(c, self.collection.publication.getCollectionByName(subname)));
-      }
+      });
     }
     toRemove.forEach(function(args) {
       args[0].smartRemoved(args[1], args[2]);
@@ -211,9 +210,7 @@ Meteor.smartPublish = function(name, callback) {
     }
 
     var observers = [];
-    for (var i = 0; i < cursors.length; i++) {
-      var c = cursors[i];
-
+    _.each(cursors, function(c) {
       if (!c._cursorDescription) {
         throw new Meteor.Error("Unable to get cursor's collection name");
       }
@@ -223,7 +220,7 @@ Meteor.smartPublish = function(name, callback) {
         throw new Meteor.Error("Unable to get cursor's collection name");
       }
       observers.push(new CursorWrapper(c, getCollectionByName(name)).observer);
-    }
+    });
     this.ready();
     this.onStop(function() {
       _.forEach(observers, function(x) {
