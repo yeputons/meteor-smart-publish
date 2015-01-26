@@ -6,12 +6,16 @@ var deepCopy = function(value) {
   return EJSON.clone(value);
 }
 
+function Dependency(callback) {
+  this.callback = callback;
+  this.id = Random.id();
+}
+
 Meteor.smartPublish = function(name, callback) {
   Meteor.publish(name, function() {
     var self = this;
     var collections = {};
     var relations = {};
-    var dependencies = {};
 
     var updateFromData = function(name, id, fields) {
       var res = {};
@@ -37,15 +41,14 @@ Meteor.smartPublish = function(name, callback) {
       var update = {};
       _.each(fields, function(flag, key) {
         if (!relations[name][key]) return;
-        _.each(relations[name][key], function(id) {
-          update[id] = true;
+        _.each(relations[name][key], function(dep) {
+          update[dep.id] = dep;
         });
       });
-      _.each(update, function(flag, depId) {
-        var dep = dependencies[name][depId];
+      _.each(update, function(dep) {
         var toRemove = [];
-        if (depId in collections[name][id].children) {
-          collections[name][id].children[depId].forEach(function(x, i) {
+        if (dep.id in collections[name][id].children) {
+          collections[name][id].children[dep.id].forEach(function(x, i) {
             _.each(x.activeItems, function(flag, subid) {
               toRemove.push([x.name, x.index, subid]);
             });
@@ -54,12 +57,12 @@ Meteor.smartPublish = function(name, callback) {
         }
 
         if (!removeAll) {
-          var cursors = dep(collections[name][id].mergedData);
+          var cursors = dep.callback(collections[name][id].mergedData);
           if (isCursor(cursors)) cursors = [cursors];
           if (!_.isArray(cursors))
             throw new Meteor.Error("Dependency function can only return a Cursor or an array of Cursors");
 
-          var observers = collections[name][id].children[depId] = [];
+          var observers = collections[name][id].children[dep.id] = [];
           for (var i = 0; i < cursors.length; i++) {
             var c = cursors[i];
             if (!isCursor(c))
@@ -140,15 +143,14 @@ Meteor.smartPublish = function(name, callback) {
     self.addDependency = function(name, fields, callback) {
       if (!_.isArray(fields)) fields = [fields];
       relations[name] = relations[name] || {};
-      dependencies[name] = dependencies[name] || [];
+      var dep = new Dependency(callback);
       fields.forEach(function(field) {
         if (field.indexOf(".") != -1) { // See #8
           field = field.substr(0, field.indexOf("."));
         }
         relations[name][field] = relations[name][field] || [];
-        relations[name][field].push(dependencies[name].length);
+        relations[name][field].push(dep);
       });
-      dependencies[name].push(callback);
     }
     
     var cursors = callback.apply(self, arguments);
