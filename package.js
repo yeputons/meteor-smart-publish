@@ -17,4 +17,5 @@ Package.on_test(function (api) {
 
   api.add_files('tests/several-cursors.js', ['server', 'client']);
   api.add_files('tests/basic-joins.js', ['server', 'client']);
+  api.add_files('tests/callbacks.js', ['server', 'client']);
 });
