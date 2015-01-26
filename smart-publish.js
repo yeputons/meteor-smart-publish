@@ -113,9 +113,9 @@ CollectionItem.prototype.updateChildren = function(fields, removeAll) {
     var toRemove = [];
     if (dep.id in self.children) {
       self.children[dep.id].forEach(function(x, i) {
-        for (subid in x.activeItems) {
-          toRemove.push([x.collection, x.dependencyCursorId, subid]);
-        };
+        _.each(x.activeItems, function(realId, strId) { // #6: if we use ObjectID as a key only, it won't work with Meteor
+          toRemove.push([x.collection, x.dependencyCursorId, realId]);
+        });
         x.observer.stop();
       });
     }
@@ -157,7 +157,7 @@ function CursorWrapper(cursor, collection) {
   var self = this;
   this.observer = cursor.observeChanges({
     added:   function(id, fields) {
-      self.activeItems[id] = 1;
+      self.activeItems[id] = id; // #6: if we store ObjectID as a key only, it won't work with Meteor
       fields['_id'] = id;
       collection.smartAdded  (self.dependencyCursorId, id, fields);
     },
