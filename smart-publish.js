@@ -15,36 +15,36 @@ function BaseCollection(name) {
   this.name = name;
   this.relations = {};
 }
-BaseCollection.prototype.smartAdded = function(index, id, fields) {
+BaseCollection.prototype.smartAdded = function(dependencyCursorId, id, fields) {
   var self = this;
   if (!self[id]) {
     self.publication.added(self.name, id, fields);
-    self[id] = new CollectionItem(id, self, fields, index);
+    self[id] = new CollectionItem(id, self, fields, dependencyCursorId);
     self[id].updateChildren(self.relations);
   } else {
     _.each(fields, function(val, key) {
       self[id].data[key] = self[id].data[key] || {};
-      self[id].data[key][index] = deepCopy(val);
+      self[id].data[key][dependencyCursorId] = deepCopy(val);
     });
     self[id].count++;
     self[id].updateFromData(fields);
     self[id].updateChildren(fields);
   }
 }
-BaseCollection.prototype.smartChanged = function(index, id, fields) {
+BaseCollection.prototype.smartChanged = function(dependencyCursorId, id, fields) {
   var data = this[id].data;
   _.each(fields, function(val, key) {
-    if (!data[key]) data[key] = {};
+    data[key] = data[key] || {};
     if (val === undefined) {
-      delete data[key][index];
+      delete data[key][dependencyCursorId];
     } else {
-      data[key][index] = deepCopy(val);
+      data[key][dependencyCursorId] = deepCopy(val);
     }
   });
   this[id].updateFromData(fields);
   this[id].updateChildren(fields);
 }
-BaseCollection.prototype.smartRemoved = function(index, id) {
+BaseCollection.prototype.smartRemoved = function(dependencyCursorId, id) {
   if (!this[id]) throw new Meteor.Error("Removing unexisting element '" + id + "' from collection '" + this.name + "'");
 
   if (!--this[id].count) { // If reference counter was decremented to zero
@@ -54,9 +54,9 @@ BaseCollection.prototype.smartRemoved = function(index, id) {
   } else {
     var fields = {};
     _.each(this[id].data, function(vals, key) {
-      if (index in vals) {
+      if (dependencyCursorId in vals) {
         fields[key] = 1;
-        delete vals[index];
+        delete vals[dependencyCursorId];
       }
     });
     this[id].updateFromData(fields);
@@ -64,7 +64,7 @@ BaseCollection.prototype.smartRemoved = function(index, id) {
   }
 }
 
-function CollectionItem(id, collection, fields, index) {
+function CollectionItem(id, collection, fields, dependencyCursorId) {
   this.id = id;
   this.collection = collection;
   this.count = 1;
@@ -74,7 +74,7 @@ function CollectionItem(id, collection, fields, index) {
   var self = this;
   _.each(fields, function(val, key) {
     self.data[key] = self.data[key] || {};
-    self.data[key][index] = deepCopy(val);
+    self.data[key][dependencyCursorId] = deepCopy(val);
   });
 }
 CollectionItem.prototype.updateFromData = function(fields) {
@@ -99,7 +99,6 @@ CollectionItem.prototype.updateChildren = function(fields, removeAll) {
   var self = this;
   var update = {};
   _.each(fields, function(flag, key) {
-    if (!self.collection.relations[key]) return;
     _.each(self.collection.relations[key], function(dep) {
       update[dep.id] = dep;
     });
@@ -109,7 +108,7 @@ CollectionItem.prototype.updateChildren = function(fields, removeAll) {
     if (dep.id in self.children) {
       self.children[dep.id].forEach(function(x, i) {
         _.each(x.activeItems, function(flag, subid) {
-          toRemove.push([x.collection, x.index, subid]);
+          toRemove.push([x.collection, x.dependencyCursorId, subid]);
         });
         x.observer.stop();
       });
@@ -143,20 +142,20 @@ CollectionItem.prototype.updateChildren = function(fields, removeAll) {
 function CursorWrapper(cursor, collection) {
   this.activeItems = {};
   this.collection = collection;
-  this.index = Random.id();
+  this.dependencyCursorId = Random.id();
   var self = this;
   this.observer = cursor.observeChanges({
     added:   function(id, fields) {
       self.activeItems[id] = 1;
       fields['_id'] = id;
-      collection.smartAdded  (self.index, id, fields);
+      collection.smartAdded  (self.dependencyCursorId, id, fields);
     },
     changed: function(id, fields) {
-      collection.smartChanged(self.index, id, fields);
+      collection.smartChanged(self.dependencyCursorId, id, fields);
     },
     removed: function(id) {
       delete self.activeItems[id];
-      collection.smartRemoved(self.index, id);
+      collection.smartRemoved(self.dependencyCursorId, id);
     },
   })
 };
