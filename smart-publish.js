@@ -18,6 +18,19 @@ function Collection(name) {
   return res;
 }
 
+function CollectionItem(id, fields, index) {
+  this.id = id;
+  this.count = 1;
+  this.data = {};
+  this.mergedData = deepCopy(fields);
+  this.children = {};
+  var self = this;
+  _.each(fields, function(val, key) {
+    self.data[key] = self.data[key] || {};
+    self.data[key][index] = deepCopy(val);
+  });
+}
+
 Meteor.smartPublish = function(name, callback) {
   Meteor.publish(name, function() {
     var self = this;
@@ -92,11 +105,7 @@ Meteor.smartPublish = function(name, callback) {
     var smartAdded = function(collection, index, id, fields) {
       if (!collection[id]) {
         self.added(collection.name, id, fields);
-        collection[id] = { count: 1, data: {}, mergedData: deepCopy(fields), children: {} };
-        _.each(fields, function(val, key) {
-          collection[id].data[key] = collection[id].data[key] || {};
-          collection[id].data[key][index] = deepCopy(val);
-        });
+        collection[id] = new CollectionItem(id, fields, index);
         updateChildren(collection, id, collection.relations);
       } else {
         _.each(fields, function(val, key) {
