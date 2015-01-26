@@ -15,6 +15,54 @@ function BaseCollection(name) {
   this.name = name;
   this.relations = {};
 }
+BaseCollection.prototype.smartAdded = function(index, id, fields) {
+  var self = this;
+  if (!self[id]) {
+    self.publication.added(self.name, id, fields);
+    self[id] = new self.publication.CollectionItem(id, self, fields, index);
+    self.publication.updateChildren(self[id], self.relations);
+  } else {
+    _.each(fields, function(val, key) {
+      self[id].data[key] = self[id].data[key] || {};
+      self[id].data[key][index] = deepCopy(val);
+    });
+    self[id].count++;
+    self[id].updateFromData(fields);
+    self.publication.updateChildren(self[id], fields);
+  }
+}
+BaseCollection.prototype.smartChanged = function(index, id, fields) {
+  var data = this[id].data;
+  _.each(fields, function(val, key) {
+    if (!data[key]) data[key] = {};
+    if (val === undefined) {
+      delete data[key][index];
+    } else {
+      data[key][index] = deepCopy(val);
+    }
+  });
+  this[id].updateFromData(fields);
+  this.publication.updateChildren(this[id], fields);
+}
+BaseCollection.prototype.smartRemoved = function(index, id) {
+  if (!this[id]) throw new Meteor.Error("Removing unexisting element '" + id + "' from collection '" + this.name + "'");
+
+  if (!--this[id].count) { // If reference counter was decremented to zero
+    this.publication.updateChildren(this[id], this.relations, true);
+    delete this[id];
+    this.publication.removed(this.name, id);
+  } else {
+    var fields = {};
+    _.each(this[id].data, function(vals, key) {
+      if (index in vals) {
+        fields[key] = 1;
+        delete vals[index];
+      }
+    });
+    this[id].updateFromData(fields);
+    this.publication.updateChildren(this[id], fields);
+  }
+}
 
 function BaseCollectionItem(id, collection, fields, index) {
   this.id = id;
@@ -112,54 +160,6 @@ Meteor.smartPublish = function(name, callback) {
           Collection.prototype.smartRemoved.apply(args[0], args.slice(1));
         });
       });
-    }
-    Collection.prototype.smartAdded = function(index, id, fields) {
-      var self = this;
-      if (!self[id]) {
-        self.publication.added(self.name, id, fields);
-        self[id] = new publication.CollectionItem(id, self, fields, index);
-        self.publication.updateChildren(self[id], self.relations);
-      } else {
-        _.each(fields, function(val, key) {
-          self[id].data[key] = self[id].data[key] || {};
-          self[id].data[key][index] = deepCopy(val);
-        });
-        self[id].count++;
-        self[id].updateFromData(fields);
-        self.publication.updateChildren(self[id], fields);
-      }
-    }
-    Collection.prototype.smartChanged = function(index, id, fields) {
-      var data = this[id].data;
-      _.each(fields, function(val, key) {
-        if (!data[key]) data[key] = {};
-        if (val === undefined) {
-          delete data[key][index];
-        } else {
-          data[key][index] = deepCopy(val);
-        }
-      });
-      this[id].updateFromData(fields);
-      this.publication.updateChildren(this[id], fields);
-    }
-    Collection.prototype.smartRemoved = function(index, id) {
-      if (!this[id]) throw new Meteor.Error("Removing unexisting element '" + id + "' from collection '" + this.name + "'");
-
-      if (!--this[id].count) { // If reference counter was decremented to zero
-        this.publication.updateChildren(this[id], this.relations, true);
-        delete this[id];
-        this.publication.removed(this.name, id);
-      } else {
-        var fields = {};
-        _.each(this[id].data, function(vals, key) {
-          if (index in vals) {
-            fields[key] = 1;
-            delete vals[index];
-          }
-        });
-        this[id].updateFromData(fields);
-        this.publication.updateChildren(this[id], fields);
-      }
     }
 
     publication.addDependency = function(name, fields, callback) {
