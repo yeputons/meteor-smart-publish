@@ -18,7 +18,7 @@ function Collection(name) {
   return res;
 }
 
-function CollectionItem(id, collection, fields, index) {
+function BaseCollectionItem(id, collection, fields, index) {
   this.id = id;
   this.collection = collection;
   this.count = 1;
@@ -31,6 +31,24 @@ function CollectionItem(id, collection, fields, index) {
     self.data[key][index] = deepCopy(val);
   });
 }
+BaseCollectionItem.prototype.updateFromData = function(fields) {
+  var res = {};
+  var merged = this.mergedData;
+  var self = this;
+  _.each(fields, function(flag, key) {
+    var cur = undefined;
+    _.each(self.data[key], (function(value) {
+      cur = _.extend(deepCopy(value), cur);
+    }));
+    res[key] = cur;
+    if (_.isUndefined(cur)) {
+      delete merged[key];
+    } else {
+      merged[key] = cur;
+    }
+  });
+  this.publication.changed(this.collection.name, this.id, res);
+}
 
 Meteor.smartPublish = function(name, callback) {
   Meteor.publish(name, function() {
@@ -40,23 +58,11 @@ Meteor.smartPublish = function(name, callback) {
       return collections[name] = collections[name] || new Collection(name);
     }
 
-    var updateFromData = function(itemm, fields) {
-      var res = {};
-      var merged = itemm.mergedData;
-      _.each(fields, function(flag, key) {
-        var cur = undefined;
-        _.each(itemm.data[key], (function(value) {
-          cur = _.extend(deepCopy(value), cur);
-        }));
-        res[key] = cur;
-        if (_.isUndefined(cur)) {
-          delete merged[key];
-        } else {
-          merged[key] = cur;
-        }
-      });
-      self.changed(itemm.collection.name, itemm.id, res);
+    function CollectionItem() {
+      BaseCollectionItem.apply(this, arguments);
     }
+    CollectionItem.prototype = Object.create(BaseCollectionItem.prototype);
+    CollectionItem.prototype.publication = self;
 
     var counter = 0; // this is global counter for index for CursorWrapper(), all indices should be different
     var updateChildren = function(itemm, fields, removeAll) {
@@ -114,7 +120,7 @@ Meteor.smartPublish = function(name, callback) {
           collection[id].data[key][index] = deepCopy(val);
         });
         collection[id].count++;
-        updateFromData(collection[id], fields);
+        collection[id].updateFromData(fields);
         updateChildren(collection[id], fields);
       }
     }
@@ -128,7 +134,7 @@ Meteor.smartPublish = function(name, callback) {
           data[key][index] = deepCopy(val);
         }
       });
-      updateFromData(collection[id], fields);
+      collection[id].updateFromData(fields);
       updateChildren(collection[id], fields);
     }
     var smartRemoved = function(collection, index, id) {
@@ -146,7 +152,7 @@ Meteor.smartPublish = function(name, callback) {
             delete vals[index];
           }
         });
-        updateFromData(collection[id], fields);
+        collection[id].updateFromData(fields);
         updateChildren(collection[id], fields);
       }
     }
