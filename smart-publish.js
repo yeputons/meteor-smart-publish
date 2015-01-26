@@ -52,7 +52,7 @@ BaseCollectionItem.prototype.updateFromData = function(fields) {
 
 Meteor.smartPublish = function(name, callback) {
   Meteor.publish(name, function() {
-    var self = this;
+    var publication = this;
     var collections = {};
     function getCollectionByName(name) {
       return collections[name] = collections[name] || new Collection(name);
@@ -62,7 +62,7 @@ Meteor.smartPublish = function(name, callback) {
       BaseCollectionItem.apply(this, arguments);
     }
     CollectionItem.prototype = Object.create(BaseCollectionItem.prototype);
-    CollectionItem.prototype.publication = self;
+    CollectionItem.prototype.publication = publication;
 
     var updateChildren = function(itemm, fields, removeAll) {
       var update = {};
@@ -109,7 +109,7 @@ Meteor.smartPublish = function(name, callback) {
     }
     var smartAdded = function(collection, index, id, fields) {
       if (!collection[id]) {
-        self.added(collection.name, id, fields);
+        publication.added(collection.name, id, fields);
         collection[id] = new CollectionItem(id, collection, fields, index);
         updateChildren(collection[id], collection.relations);
       } else {
@@ -141,7 +141,7 @@ Meteor.smartPublish = function(name, callback) {
       if (!--collection[id].count) { // If reference counter was decremented to zero
         updateChildren(collection[id], collection.relations, true);
         delete collection[id];
-        self.removed(collection.name, id);
+        publication.removed(collection.name, id);
       } else {
         var fields = {};
         _.each(collection[id].data, function(vals, key) {
@@ -155,7 +155,7 @@ Meteor.smartPublish = function(name, callback) {
       }
     }
 
-    self.addDependency = function(name, fields, callback) {
+    publication.addDependency = function(name, fields, callback) {
       if (!_.isArray(fields)) fields = [fields];
       var relations = getCollectionByName(name).relations;
       var dep = new Dependency(callback);
@@ -168,7 +168,7 @@ Meteor.smartPublish = function(name, callback) {
       });
     }
     
-    var cursors = callback.apply(self, arguments);
+    var cursors = callback.apply(publication, arguments);
     if (isCursor(cursors)) cursors = [cursors];
 
     if (!cursors) return;
