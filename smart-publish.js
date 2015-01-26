@@ -14,25 +14,26 @@ function Dependency(callback) {
 function BaseCollection(name) {
   this.name = name;
   this.relations = {};
+  this.items = {};
 }
 BaseCollection.prototype.smartAdded = function(dependencyCursorId, id, fields) {
-  var self = this;
-  if (!self[id]) {
-    self.publication.added(self.name, id, fields);
-    self[id] = new CollectionItem(id, self, fields, dependencyCursorId);
-    self[id].updateChildren(self.relations);
+  var items = this.items;
+  if (!items[id]) {
+    this.publication.added(this.name, id, fields);
+    items[id] = new CollectionItem(id, this, fields, dependencyCursorId);
+    items[id].updateChildren(this.relations);
   } else {
     _.each(fields, function(val, key) {
-      self[id].data[key] = self[id].data[key] || {};
-      self[id].data[key][dependencyCursorId] = deepCopy(val);
+      items[id].data[key] = items[id].data[key] || {};
+      items[id].data[key][dependencyCursorId] = deepCopy(val);
     });
-    self[id].count++;
-    self[id].updateFromData(fields);
-    self[id].updateChildren(fields);
+    items[id].count++;
+    items[id].updateFromData(fields);
+    items[id].updateChildren(fields);
   }
 }
 BaseCollection.prototype.smartChanged = function(dependencyCursorId, id, fields) {
-  var data = this[id].data;
+  var data = this.items[id].data;
   _.each(fields, function(val, key) {
     data[key] = data[key] || {};
     if (val === undefined) {
@@ -41,28 +42,28 @@ BaseCollection.prototype.smartChanged = function(dependencyCursorId, id, fields)
       data[key][dependencyCursorId] = deepCopy(val);
     }
   });
-  this[id].updateFromData(fields);
-  this[id].updateChildren(fields);
+  this.items[id].updateFromData(fields);
+  this.items[id].updateChildren(fields);
 }
 BaseCollection.prototype.smartRemoved = function(dependencyCursorId, id) {
-  if (!this[id]) {
+  if (!this.items[id]) {
     throw new Meteor.Error("Removing unexisting element '" + id + "' from collection '" + this.name + "'");
   }
 
-  if (!--this[id].count) { // If reference counter was decremented to zero
-    this[id].updateChildren(this.relations, true);
-    delete this[id];
+  if (!--this.items[id].count) { // If reference counter was decremented to zero
+    this.items[id].updateChildren(this.relations, true);
+    delete this.items[id];
     this.publication.removed(this.name, id);
   } else {
     var fields = {};
-    _.each(this[id].data, function(vals, key) {
+    _.each(this.items[id].data, function(vals, key) {
       if (dependencyCursorId in vals) {
         fields[key] = 1;
         delete vals[dependencyCursorId];
       }
     });
-    this[id].updateFromData(fields);
-    this[id].updateChildren(fields);
+    this.items[id].updateFromData(fields);
+    this.items[id].updateChildren(fields);
   }
 }
 
