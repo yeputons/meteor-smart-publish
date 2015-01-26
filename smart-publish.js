@@ -45,7 +45,9 @@ BaseCollection.prototype.smartChanged = function(dependencyCursorId, id, fields)
   this[id].updateChildren(fields);
 }
 BaseCollection.prototype.smartRemoved = function(dependencyCursorId, id) {
-  if (!this[id]) throw new Meteor.Error("Removing unexisting element '" + id + "' from collection '" + this.name + "'");
+  if (!this[id]) {
+    throw new Meteor.Error("Removing unexisting element '" + id + "' from collection '" + this.name + "'");
+  }
 
   if (!--this[id].count) { // If reference counter was decremented to zero
     this[id].updateChildren(this.relations, true);
@@ -117,18 +119,24 @@ CollectionItem.prototype.updateChildren = function(fields, removeAll) {
     if (!removeAll) {
       var cursors = dep.callback(self.mergedData);
       if (isCursor(cursors)) cursors = [cursors];
-      if (!_.isArray(cursors))
+      if (!_.isArray(cursors)) {
         throw new Meteor.Error("Dependency function can only return a Cursor or an array of Cursors");
+      }
 
       var observers = self.children[dep.id] = [];
       for (var i = 0; i < cursors.length; i++) {
         var c = cursors[i];
-        if (!isCursor(c))
+        if (!isCursor(c)) {
           throw new Meteor.Error("Dependency function returned an array of non-Cursors");
+        }
 
-        if (!c._cursorDescription) throw new Meteor.Error("Unable to get cursor's collection name");
+        if (!c._cursorDescription) {
+          throw new Meteor.Error("Unable to get cursor's collection name");
+        }
         var subname = c._cursorDescription.collectionName;
-        if (!subname) throw new Meteor.Error("Unable to get cursor's collection name");
+        if (!subname) {
+          throw new Meteor.Error("Unable to get cursor's collection name");
+        }
 
         observers.push(new CursorWrapper(c, self.collection.publication.getCollectionByName(subname)));
       }
@@ -192,26 +200,35 @@ Meteor.smartPublish = function(name, callback) {
     if (isCursor(cursors)) cursors = [cursors];
 
     if (!cursors) return;
-    if (!_.isArray(cursors))
+    if (!_.isArray(cursors)) {
       throw new Meteor.Error("Publish function can only return a Cursor or an array of Cursors");
+    }
 
-    for (var i = 0; i < cursors.length; i++)
-      if (!isCursor(cursors[i]))
+    for (var i = 0; i < cursors.length; i++) {
+      if (!isCursor(cursors[i])) {
         throw new Meteor.Error("Publish function returned an array of non-Cursors");
+      }
+    }
 
     var observers = [];
     for (var i = 0; i < cursors.length; i++) {
       var c = cursors[i];
 
-      if (!c._cursorDescription) throw new Meteor.Error("Unable to get cursor's collection name");
+      if (!c._cursorDescription) {
+        throw new Meteor.Error("Unable to get cursor's collection name");
+      }
 
       var name = c._cursorDescription.collectionName;
-      if (!name) throw new Meteor.Error("Unable to get cursor's collection name");
+      if (!name) {
+        throw new Meteor.Error("Unable to get cursor's collection name");
+      }
       observers.push(new CursorWrapper(c, getCollectionByName(name)).observer);
     }
     this.ready();
     this.onStop(function() {
-      _.forEach(observers, function(x) { x.stop(); });
+      _.forEach(observers, function(x) {
+        x.stop();
+      });
     });
   });
 }
