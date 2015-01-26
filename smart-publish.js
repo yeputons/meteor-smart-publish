@@ -44,7 +44,7 @@ Meteor.smartPublish = function(name, callback) {
       self.changed(collection.name, id, res);
     }
 
-    var counter = 0; // this is global counter for index for publishCursor(), all indices should be different
+    var counter = 0; // this is global counter for index for CursorWrapper(), all indices should be different
     var updateChildren = function(collection, id, fields, removeAll) {
       var update = {};
       _.each(fields, function(flag, key) {
@@ -80,7 +80,7 @@ Meteor.smartPublish = function(name, callback) {
             var subname = c._cursorDescription.collectionName;
             if (!subname) throw new Meteor.Error("Unable to get cursor's collection name");
 
-            observers.push(publishCursor(c, getCollectionByName(subname), '_' + counter));
+            observers.push(new CursorWrapper(c, getCollectionByName(subname), '_' + counter));
             counter++;
           }
         }
@@ -171,32 +171,30 @@ Meteor.smartPublish = function(name, callback) {
 
       if (!c._cursorDescription) throw new Meteor.Error("Unable to get cursor's collection name");
 
-      function publishCursor(c, collection, index) {
-        var activeItems = {};
-        return {
-          observer: c.observeChanges({
-            added:   function(id, fields) {
-              activeItems[id] = 1;
-              fields['_id'] = id;
-              smartAdded  (collection, index, id, fields);
-            },
-            changed: function(id, fields) {
-              smartChanged(collection, index, id, fields);
-            },
-            removed: function(id) {
-              delete activeItems[id];
-              smartRemoved(collection, index, id);
-            },
-          }),
-          activeItems: activeItems,
-          collection: collection,
-          index: index
-        }
+      function CursorWrapper(cursor, collection, index) {
+        this.activeItems = {};
+        this.collection = collection;
+        this.index = index;
+        var self = this;
+        this.observer = cursor.observeChanges({
+          added:   function(id, fields) {
+            self.activeItems[id] = 1;
+            fields['_id'] = id;
+            smartAdded  (collection, index, id, fields);
+          },
+          changed: function(id, fields) {
+            smartChanged(collection, index, id, fields);
+          },
+          removed: function(id) {
+            delete self.activeItems[id];
+            smartRemoved(collection, index, id);
+          },
+        })
       };
 
       var name = c._cursorDescription.collectionName;
       if (!name) throw new Meteor.Error("Unable to get cursor's collection name");
-      observers.push(publishCursor(c, getCollectionByName(name), i).observer);
+      observers.push(new CursorWrapper(c, getCollectionByName(name), i).observer);
     }
     this.ready();
     this.onStop(function() {
