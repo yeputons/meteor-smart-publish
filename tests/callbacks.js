@@ -8,12 +8,12 @@ if (Meteor.isServer) {
   Meteor.methods({
     callbacks_initDb: function() {
       CallbacksA.remove({});
-      for (var i = 1; i <= 15; i++) {
+      for (var i = 1; i <= 18; i++) {
         CallbacksA.insert({val: i});
       }
     },
     callbacks_setEnabled: function(val, enabled) {
-       CallbacksA.update({val: val}, {$set: {enabled: enabled}});
+      CallbacksA.update({val: val}, {$set: {enabled: enabled}}, {multi: true});
     },
   });
 
@@ -65,15 +65,13 @@ if (Meteor.isClient) {
   }
   function testAVals(test, expected) {
     var got = getVals(CallbacksA);
-    got.sort();
-    expected.sort();
     test.equal(got, expected, 'CallbacksA is invalid');
   }
 
   Tinytest.addAsync('callbacks: enabling 5, 7, 9', function(test, next) {
     Meteor.call('callbacks_setEnabled', {$in: [5,7,9]}, true, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
-      testAVals(test, [5,10,11,20,21,22,23,9,18,19,7,14,15,28,29,30,31]);
+      testAVals(test, [10,11,5,14,15,7,18,9]);
       next();
     });
   });
