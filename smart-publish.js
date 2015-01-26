@@ -150,12 +150,12 @@ CollectionItem.prototype.updateChildren = function(fields, removeAll) {
   });
 }
 
-function CursorWrapper(cursor, collection) {
+function SingleCollectionCallbacksWrapper(collection) {
   this.activeItems = {};
   this.collection = collection;
   this.dependencyCursorId = Random.id();
   var self = this;
-  this.observer = cursor.observeChanges({
+  _.extend(this, {
     added:   function(id, fields) {
       self.activeItems[id] = id; // #6: if we store ObjectID as a key only, it won't work with Meteor
       fields['_id'] = id;
@@ -168,8 +168,14 @@ function CursorWrapper(cursor, collection) {
       delete self.activeItems[id];
       collection.smartRemoved(self.dependencyCursorId, id);
     },
-  })
+  });
 };
+
+function CursorWrapper(cursor, collection) {
+  SingleCollectionCallbacksWrapper.call(this, collection);
+  this.observer = cursor.observeChanges(this);
+};
+CursorWrapper.prototype = Object.create(SingleCollectionCallbacksWrapper.prototype);
 
 Meteor.smartPublish = function(name, callback) {
   Meteor.publish(name, function() {
