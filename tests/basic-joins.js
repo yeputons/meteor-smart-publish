@@ -89,7 +89,7 @@ if (Meteor.isClient) {
   Tinytest.addAsync('joins: enabling 1..7', function(test, next) {
     Meteor.call('joins_setEnabled', 1, true, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
-      test.equal(getVals(JoinedA), [1,10,11,12,13,14,15,16], 'JoinedA is invalid');
+      test.equal(getVals(JoinedA), [10,11,12,13,14,15,16,1], 'JoinedA is invalid');
       test.equal(getVals(JoinedB), [1,2,3,4,5,6,7,14], 'JoinedB is invalid');
       next();
     });
@@ -98,7 +98,7 @@ if (Meteor.isClient) {
   Tinytest.addAsync('joins: enabling 4..10', function(test, next) {
     Meteor.call('joins_setEnabled', 2, true, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
-      test.equal(getVals(JoinedA), [1,10,11,12,13,14,15,16,2,17,18,19], 'JoinedA is invalid');
+      test.equal(getVals(JoinedA), [10,11,12,13,14,15,16,1,17,18,19,2], 'JoinedA is invalid');
       test.equal(getVals(JoinedB), [1,2,3,4,5,6,7,14,8,9,10,15], 'JoinedB is invalid');
       next();
     });
@@ -107,7 +107,7 @@ if (Meteor.isClient) {
   Tinytest.addAsync('joins: disabling 1..7', function(test, next) {
     Meteor.call('joins_setEnabled', 1, false, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
-      test.equal(getVals(JoinedA), [13,14,15,16,2,17,18,19], 'JoinedA is invalid');
+      test.equal(getVals(JoinedA), [13,14,15,16,17,18,19,2], 'JoinedA is invalid');
       test.equal(getVals(JoinedB), [4,5,6,7,8,9,10,15], 'JoinedB is invalid');
       next();
     });
@@ -116,7 +116,7 @@ if (Meteor.isClient) {
   Tinytest.addAsync('joins: changing 4..10 to 4..8', function(test, next) {
     JoinedA.update(JoinedA.findOne({l: 4, r: 10})._id, {$set: {r: 8}}, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
-      test.equal(getVals(JoinedA), [13,14,15,16,2,17], 'JoinedA is invalid');
+      test.equal(getVals(JoinedA), [13,14,15,16,17,2], 'JoinedA is invalid');
       test.equal(getVals(JoinedB), [4,5,6,7,8,15], 'JoinedB is invalid');
       next();
     });
@@ -125,7 +125,7 @@ if (Meteor.isClient) {
   Tinytest.addAsync('joins: adding nested property from scratch', function(test, next) {
     JoinedA.update(JoinedA.findOne({val: 14})._id, {$set: {'extra.val': 12}}, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
-      test.equal(getVals(JoinedA), [13,14,15,16,2,17], 'JoinedA is invalid');
+      test.equal(getVals(JoinedA), [13,14,15,16,17,2], 'JoinedA is invalid');
       test.equal(getVals(JoinedB), [4,5,6,7,8,15,12], 'JoinedB is invalid');
       next();
     });
@@ -134,7 +134,7 @@ if (Meteor.isClient) {
   Tinytest.addAsync('joins: adding invalid nested property holder', function(test, next) {
     JoinedA.update(JoinedA.findOne({val: 14})._id, {$set: {'extra': 'invalid'}}, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
-      test.equal(getVals(JoinedA), [13,14,15,16,2,17], 'JoinedA is invalid');
+      test.equal(getVals(JoinedA), [13,14,15,16,17,2], 'JoinedA is invalid');
       test.equal(getVals(JoinedB), [4,5,6,7,8,15], 'JoinedB is invalid');
       next();
     });
@@ -143,7 +143,7 @@ if (Meteor.isClient) {
   Tinytest.addAsync('joins: adding nested property', function(test, next) {
     JoinedA.update(JoinedA.findOne({val: 14})._id, {$set: {'extra': {'val': 13}}}, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
-      test.equal(getVals(JoinedA), [13,14,15,16,2,17], 'JoinedA is invalid');
+      test.equal(getVals(JoinedA), [13,14,15,16,17,2], 'JoinedA is invalid');
       test.equal(getVals(JoinedB), [4,5,6,7,8,15,13], 'JoinedB is invalid');
       next();
     });
@@ -152,7 +152,7 @@ if (Meteor.isClient) {
   Tinytest.addAsync('joins: changing nested property', function(test, next) {
     JoinedA.update(JoinedA.findOne({val: 14})._id, {$set: {'extra.val': 14}}, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
-      test.equal(getVals(JoinedA), [13,14,15,16,2,17], 'JoinedA is invalid');
+      test.equal(getVals(JoinedA), [13,14,15,16,17,2], 'JoinedA is invalid');
       test.equal(getVals(JoinedB), [4,5,6,7,8,15,14], 'JoinedB is invalid');
       next();
     });
@@ -161,7 +161,7 @@ if (Meteor.isClient) {
   Tinytest.addAsync('joins: removing nested property holder', function(test, next) {
     JoinedA.update(JoinedA.findOne({val: 14})._id, {$unset: {'extra': 1}}, function(err, res) {
       test.isUndefined(err, 'error during update: ' + err);
-      test.equal(getVals(JoinedA), [13,14,15,16,2,17], 'JoinedA is invalid');
+      test.equal(getVals(JoinedA), [13,14,15,16,17,2], 'JoinedA is invalid');
       test.equal(getVals(JoinedB), [4,5,6,7,8,15], 'JoinedB is invalid');
       next();
     });

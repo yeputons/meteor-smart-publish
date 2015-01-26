@@ -19,9 +19,9 @@ function BaseCollection(name) {
 BaseCollection.prototype.smartAdded = function(dependencyCursorId, id, fields) {
   var items = this.items;
   if (!items[id]) {
-    this.publication.added(this.name, id, fields);
     items[id] = new CollectionItem(id, this, fields, dependencyCursorId);
     items[id].updateChildren(this.relations);
+    this.publication.added(this.name, id, fields);
   } else {
     _.each(fields, function(val, key) {
       items[id].data[key] = items[id].data[key] || {};
@@ -51,9 +51,9 @@ BaseCollection.prototype.smartRemoved = function(dependencyCursorId, id) {
   }
 
   if (!--this.items[id].count) { // If reference counter was decremented to zero
+    this.publication.removed(this.name, id);
     this.items[id].updateChildren(this.relations, true);
     delete this.items[id];
-    this.publication.removed(this.name, id);
   } else {
     var fields = {};
     _.each(this.items[id].data, function(vals, key) {
