@@ -67,7 +67,7 @@ if (Meteor.isClient) {
     var got = getVals(CallbacksA);
     got.sort();
     expected.sort();
-    test.equal(expected, got, 'CallbacksA is invalid');
+    test.equal(got, expected, 'CallbacksA is invalid');
   }
 
   Tinytest.addAsync('callbacks: enabling 5, 7, 9', function(test, next) {
