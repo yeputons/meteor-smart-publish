@@ -11,7 +11,7 @@ function Dependency(callback) {
   this.id = Random.id();
 }
 
-function Collection(name) {
+function BaseCollection(name) {
   this.name = name;
   this.relations = {};
 }
@@ -55,6 +55,11 @@ Meteor.smartPublish = function(name, callback) {
     function getCollectionByName(name) {
       return collections[name] = collections[name] || new Collection(name);
     }
+
+    function Collection() {
+      BaseCollection.apply(this, arguments);
+    }
+    Collection.prototype = Object.create(BaseCollection.prototype);
 
     function CollectionItem() {
       BaseCollectionItem.apply(this, arguments);
@@ -101,11 +106,11 @@ Meteor.smartPublish = function(name, callback) {
           }
         }
         toRemove.forEach(function(args) {
-          smartRemoved.apply(args[0], args.slice(1));
+          Collection.prototype.smartRemoved.apply(args[0], args.slice(1));
         });
       });
     }
-    var smartAdded = function(index, id, fields) {
+    Collection.prototype.smartAdded = function(index, id, fields) {
       var self = this;
       if (!self[id]) {
         publication.added(self.name, id, fields);
@@ -121,7 +126,7 @@ Meteor.smartPublish = function(name, callback) {
         updateChildren(self[id], fields);
       }
     }
-    var smartChanged = function(index, id, fields) {
+    Collection.prototype.smartChanged = function(index, id, fields) {
       var data = this[id].data;
       _.each(fields, function(val, key) {
         if (!data[key]) data[key] = {};
@@ -134,7 +139,7 @@ Meteor.smartPublish = function(name, callback) {
       this[id].updateFromData(fields);
       updateChildren(this[id], fields);
     }
-    var smartRemoved = function(index, id) {
+    Collection.prototype.smartRemoved = function(index, id) {
       if (!this[id]) throw new Meteor.Error("Removing unexisting element '" + id + "' from collection '" + this.name + "'");
 
       if (!--this[id].count) { // If reference counter was decremented to zero
@@ -193,14 +198,14 @@ Meteor.smartPublish = function(name, callback) {
           added:   function(id, fields) {
             self.activeItems[id] = 1;
             fields['_id'] = id;
-            smartAdded.call  (collection, self.index, id, fields);
+            collection.smartAdded  (self.index, id, fields);
           },
           changed: function(id, fields) {
-            smartChanged.call(collection, self.index, id, fields);
+            collection.smartChanged(self.index, id, fields);
           },
           removed: function(id) {
             delete self.activeItems[id];
-            smartRemoved.call(collection, self.index, id);
+            collection.smartRemoved(self.index, id);
           },
         })
       };
