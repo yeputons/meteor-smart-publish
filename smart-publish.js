@@ -177,6 +177,20 @@ function CursorWrapper(cursor, collection) {
 };
 CursorWrapper.prototype = Object.create(SingleCollectionCallbacksWrapper.prototype);
 
+function CallbacksWrapper(getCollectionByName) {
+  var collectionWrappers = {};
+  this.added = function(name, id, fields) {
+    collectionWrappers[name] = collectionWrappers[name] || new SingleCollectionCallbacksWrapper(getCollectionByName(name));
+    collectionWrappers[name].added(id, fields);
+  };
+  this.changed = function(name, id, fields) {
+    collectionWrappers[name].changed(id, fields);
+  };
+  this.removed = function(name, id) {
+    collectionWrappers[name].removed(id);
+  };
+};
+
 Meteor.smartPublish = function(name, callback) {
   Meteor.publish(name, function() {
     var publication = this;
@@ -204,8 +218,10 @@ Meteor.smartPublish = function(name, callback) {
         relations[field].push(dep);
       });
     }
-    
-    var cursors = callback.apply(publication, arguments);
+
+    var context = Object.create(publication);
+    _.extend(context, new CallbacksWrapper(getCollectionByName));
+    var cursors = callback.apply(context, arguments);
     if (isCursor(cursors)) cursors = [cursors];
 
     if (!cursors) return;
