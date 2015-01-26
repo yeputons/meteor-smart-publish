@@ -14,13 +14,13 @@ function Dependency(callback) {
 function Collection(name) {
   var res = [];
   res.name = name;
+  res.relations = {};
   return res;
 }
 
 Meteor.smartPublish = function(name, callback) {
   Meteor.publish(name, function() {
     var self = this;
-    var relations = {};
     var collections = {};
     function getCollectionByName(name) {
       return collections[name] = collections[name] || new Collection(name);
@@ -46,11 +46,10 @@ Meteor.smartPublish = function(name, callback) {
 
     var counter = 0; // this is global counter for index for publishCursor(), all indices should be different
     var updateChildren = function(collection, id, fields, removeAll) {
-      if (!relations[collection.name]) return;
       var update = {};
       _.each(fields, function(flag, key) {
-        if (!relations[collection.name][key]) return;
-        _.each(relations[collection.name][key], function(dep) {
+        if (!collection.relations[key]) return;
+        _.each(collection.relations[key], function(dep) {
           update[dep.id] = dep;
         });
       });
@@ -98,7 +97,7 @@ Meteor.smartPublish = function(name, callback) {
           collection[id].data[key] = collection[id].data[key] || {};
           collection[id].data[key][index] = deepCopy(val);
         });
-        updateChildren(collection, id, relations[collection.name]);
+        updateChildren(collection, id, collection.relations);
       } else {
         _.each(fields, function(val, key) {
           collection[id].data[key] = collection[id].data[key] || {};
@@ -126,7 +125,7 @@ Meteor.smartPublish = function(name, callback) {
       if (!collection[id]) throw new Meteor.Error("Removing unexisting element '" + id + "' from collection '" + collection.name + "'");
 
       if (!--collection[id].count) { // If reference counter was decremented to zero
-        updateChildren(collection, id, relations[collection.name], true);
+        updateChildren(collection, id, collection.relations, true);
         delete collection[id];
         self.removed(collection.name, id);
       } else {
@@ -144,14 +143,14 @@ Meteor.smartPublish = function(name, callback) {
 
     self.addDependency = function(name, fields, callback) {
       if (!_.isArray(fields)) fields = [fields];
-      relations[name] = relations[name] || {};
+      var relations = getCollectionByName(name).relations;
       var dep = new Dependency(callback);
       fields.forEach(function(field) {
         if (field.indexOf(".") != -1) { // See #8
           field = field.substr(0, field.indexOf("."));
         }
-        relations[name][field] = relations[name][field] || [];
-        relations[name][field].push(dep);
+        relations[field] = relations[field] || [];
+        relations[field].push(dep);
       });
     }
     
