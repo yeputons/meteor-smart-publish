@@ -13,7 +13,11 @@ if (Meteor.isServer) {
       JoinedA.remove({});
       JoinedB.remove({});
       for (var i = 10; i <= 20; i++) {
-        JoinedA.insert({val: i});
+        if (i % 2 == 0) {
+          JoinedA.insert({val: i});
+        } else {
+          JoinedA.insert({_id: new Mongo.ObjectID(), val: i});
+        }
       }
       JoinedA.insert({val: 1, l: 1, r: 7 , extra: {val: 14}});
       JoinedA.insert({val: 2, l: 4, r: 10, extra: {val: 15}});
