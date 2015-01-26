@@ -12,10 +12,8 @@ function Dependency(callback) {
 }
 
 function Collection(name) {
-  var res = [];
-  res.name = name;
-  res.relations = {};
-  return res;
+  this.name = name;
+  this.relations = {};
 }
 
 function BaseCollectionItem(id, collection, fields, index) {
