@@ -60,6 +60,7 @@ Meteor.smartPublish = function(name, callback) {
       BaseCollection.apply(this, arguments);
     }
     Collection.prototype = Object.create(BaseCollection.prototype);
+    Collection.prototype.publication = publication;
 
     function CollectionItem() {
       BaseCollectionItem.apply(this, arguments);
@@ -67,7 +68,9 @@ Meteor.smartPublish = function(name, callback) {
     CollectionItem.prototype = Object.create(BaseCollectionItem.prototype);
     CollectionItem.prototype.publication = publication;
 
-    var updateChildren = function(itemm, fields, removeAll) {
+    publication.CollectionItem = CollectionItem;
+
+    publication.updateChildren = function(itemm, fields, removeAll) {
       var update = {};
       _.each(fields, function(flag, key) {
         if (!itemm.collection.relations[key]) return;
@@ -113,9 +116,9 @@ Meteor.smartPublish = function(name, callback) {
     Collection.prototype.smartAdded = function(index, id, fields) {
       var self = this;
       if (!self[id]) {
-        publication.added(self.name, id, fields);
-        self[id] = new CollectionItem(id, self, fields, index);
-        updateChildren(self[id], self.relations);
+        self.publication.added(self.name, id, fields);
+        self[id] = new publication.CollectionItem(id, self, fields, index);
+        self.publication.updateChildren(self[id], self.relations);
       } else {
         _.each(fields, function(val, key) {
           self[id].data[key] = self[id].data[key] || {};
@@ -123,7 +126,7 @@ Meteor.smartPublish = function(name, callback) {
         });
         self[id].count++;
         self[id].updateFromData(fields);
-        updateChildren(self[id], fields);
+        self.publication.updateChildren(self[id], fields);
       }
     }
     Collection.prototype.smartChanged = function(index, id, fields) {
@@ -137,15 +140,15 @@ Meteor.smartPublish = function(name, callback) {
         }
       });
       this[id].updateFromData(fields);
-      updateChildren(this[id], fields);
+      this.publication.updateChildren(this[id], fields);
     }
     Collection.prototype.smartRemoved = function(index, id) {
       if (!this[id]) throw new Meteor.Error("Removing unexisting element '" + id + "' from collection '" + this.name + "'");
 
       if (!--this[id].count) { // If reference counter was decremented to zero
-        updateChildren(this[id], this.relations, true);
+        this.publication.updateChildren(this[id], this.relations, true);
         delete this[id];
-        publication.removed(this.name, id);
+        this.publication.removed(this.name, id);
       } else {
         var fields = {};
         _.each(this[id].data, function(vals, key) {
@@ -155,7 +158,7 @@ Meteor.smartPublish = function(name, callback) {
           }
         });
         this[id].updateFromData(fields);
-        updateChildren(this[id], fields);
+        this.publication.updateChildren(this[id], fields);
       }
     }
 
