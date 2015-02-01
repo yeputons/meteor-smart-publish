@@ -134,6 +134,7 @@ Known issues and limitations
 on each other, removal of A won't remove B and C from the resulting set as they still have some incoming dependencies.
 3. `smart-publish` tracks fields on document-level only. I.e. if you track `profile.avatar` property, the whole `profile` is tracked instead, which, unfortunately,
 is not the best option for performance.
+4. #11: when subscription is stopped, not all observers are stopped if there are remaining elements in the publication set
 
 Running tests
 =============
