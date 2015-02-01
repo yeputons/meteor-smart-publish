@@ -91,6 +91,42 @@ in some way or do even more evil stuff with `this.added`/`this.changed`/`this.re
 both in the publish function and in dependency functions. Do not call `this.ready()` in either one - it's automatically called
 after top-level callback (i.e. parameter of `smartPublish`) finishes its execution.
 
+Here is an example of 'on-the-fly' binary heap from tests:
+
+```
+function AlteringObserver(uplink) {
+  this.added = function(id, fields) {
+    fields.l = fields.val * 2;
+    fields.r = fields.val * 2 + 1;
+    uplink.added('HeapItems', id, fields);
+  };
+  this.changed = function(id, fields) {
+    uplink.changed('HeapItems', id, fields);
+  };
+  this.removed = function(id) {
+    uplink.removed('HeapItems', id);
+  }
+}
+Meteor.smartPublish('heap', function() {
+  this.addDependency('HeapItems', ['l', 'r'], function(fields) {
+    // Here 'this' refers to dependency only, so 'onStop' is called when this
+    // dependency becomes obsolote
+    var handle = HeapItems.find({val: {$in: [fields.l, fields.r]}}).observeChanges(new AlteringObserver(this));
+    this.onStop(function() {
+      handle.stop();
+    });
+  });
+  var handle = HeapItems.find({selected: true}).observeChanges(new AlteringObserver(this));
+  this.onStop(function() {
+    handle.stop();
+  });
+});
+```
+
+In this example `HeapItems` collection contain some items with `val` property specified. When you select some item by setting
+its `selected` to `true`, it and all its children (which are generated on-the-fly) are published to client together with their `l` and `r` properties,
+which were not initially in the DB.
+
 Known issues and limitations
 ============================
 1. Not enough tests yet.
