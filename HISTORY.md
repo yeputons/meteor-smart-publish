@@ -1,6 +1,7 @@
 ## vNEXT
 * #9: now `this.added`/`this.changed`/`this.removed` callbacks can be called in both publish function and dependency functions: it's treated as if one more cursor were returned, so you can both return cursors and use these callbacks
 * `this.ready` was explicitly removed in smartPublish callback, because it's automatically called after its end
+* dependency functions are allowed to not return. You're expected to use `this.added` and friends in that case, otherwise your dependency function is useless.
 
 ## v0.1.8
 * Some refactoring was done
