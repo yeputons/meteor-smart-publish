@@ -5,20 +5,20 @@ Package.describe({
   name: "mrt:smart-publish"
 });
 
-Package.on_use(function (api, where) {
-  api.add_files('utils.js', ['server']);
-  api.add_files('collection-items.js', ['server']);
-  api.add_files('wrappers.js', ['server']);
-  api.add_files('smart-publish.js', ['server']);
+Package.onUse(function (api, where) {
+  api.addFiles('utils.js', ['server']);
+  api.addFiles('collection-items.js', ['server']);
+  api.addFiles('wrappers.js', ['server']);
+  api.addFiles('smart-publish.js', ['server']);
 });
 
-Package.on_test(function (api) {
+Package.onTest(function (api) {
   api.use('mrt:smart-publish');
   api.use('tinytest');
   api.use('insecure');
   api.use('meteor-platform');
 
-  api.add_files('tests/several-cursors.js', ['server', 'client']);
-  api.add_files('tests/basic-joins.js', ['server', 'client']);
-  api.add_files('tests/callbacks.js', ['server', 'client']);
+  api.addFiles('tests/several-cursors.js', ['server', 'client']);
+  api.addFiles('tests/basic-joins.js', ['server', 'client']);
+  api.addFiles('tests/callbacks.js', ['server', 'client']);
 });
