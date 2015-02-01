@@ -111,6 +111,8 @@ CollectionItem.prototype.updateChildren = function(fields, removeAll) {
       var wrappers = getWrappersFromCallbackResult(self.collection.publication.getCollectionByName, cursors);
       wrappers.push(context);
       self.children[dep.id] = wrappers;
+    } else {
+      delete self.children[dep.id];
     }
     toRemove.forEach(function(args) {
       args[0].smartRemoved(args[1], args[2]);
