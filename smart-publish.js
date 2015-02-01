@@ -112,22 +112,23 @@ CollectionItem.prototype.updateChildren = function(fields, removeAll) {
   _.each(update, function(dep) {
     var toRemove = [];
     if (dep.id in self.children) {
-      self.children[dep.id].forEach(function(x, i) {
-        _.each(x.activeItems, function(realId, strId) { // #6: if we use ObjectID as a key only, it won't work with Meteor
-          toRemove.push([x.collection, x.dependencyCursorId, realId]);
-        });
-        x.observer.stop();
+      self.children[dep.id].forEach(function(x) {
+        toRemove = toRemove.concat(x.getActiveItems());
+        x.stop();
       });
     }
 
     if (!removeAll) {
-      var cursors = dep.callback(self.mergedData);
+      var context = new CallbacksWrapper(self.collection.publication.getCollectionByName);
+      var cursors = dep.callback.apply(context, [self.mergedData]);
+      if (!cursors) cursors = [];
       if (isCursor(cursors)) cursors = [cursors];
       if (!_.isArray(cursors)) {
         throw new Meteor.Error("Dependency function can only return a Cursor or an array of Cursors");
       }
 
       var wrappers = self.children[dep.id] = [];
+      wrappers.push(context);
       _.each(cursors, function(c) {
         if (!isCursor(c)) {
           throw new Meteor.Error("Dependency function returned an array of non-Cursors");
@@ -154,6 +155,14 @@ function SingleCollectionCallbacksWrapper(collection) {
   this.activeItems = {};
   this.collection = collection;
   this.dependencyCursorId = Random.id();
+  this.getActiveItems = function() {
+    var result = [];
+    var self = this;
+    _.each(this.activeItems, function(realId, strId) { // #6: if we use ObjectID as a key only, it won't work with Meteor
+      result.push([self.collection, self.dependencyCursorId, realId]);
+    });
+    return result;
+  }
   var self = this;
   _.extend(this, {
     added:   function(id, fields) {
@@ -174,6 +183,9 @@ function SingleCollectionCallbacksWrapper(collection) {
 function CursorWrapper(cursor, collection) {
   SingleCollectionCallbacksWrapper.call(this, collection);
   this.observer = cursor.observeChanges(this);
+  this.stop = function() {
+    this.observer.stop();
+  }
 };
 CursorWrapper.prototype = Object.create(SingleCollectionCallbacksWrapper.prototype);
 
@@ -189,6 +201,22 @@ function CallbacksWrapper(getCollectionByName) {
   this.removed = function(name, id) {
     collectionWrappers[name].removed(id);
   };
+  this.getActiveItems = function() {
+    var result = [];
+    _.each(collectionWrappers, function(wrapper, name) {
+      result = result.concat(wrapper.getActiveItems());
+    });
+    return result;
+  }
+  this.onStopCallbacks = [];
+  this.onStop = function(callback) {
+    this.onStopCallbacks.push(callback);
+  }
+  this.stop = function() {
+    _.each(this.onStopCallbacks, function(callback) {
+      callback();
+    });
+  }
 };
 
 Meteor.smartPublish = function(name, callback) {
@@ -224,7 +252,7 @@ Meteor.smartPublish = function(name, callback) {
     var cursors = callback.apply(context, arguments);
     if (isCursor(cursors)) cursors = [cursors];
 
-    if (!cursors) return;
+    if (!cursors) cursors = [];
     if (!_.isArray(cursors)) {
       throw new Meteor.Error("Publish function can only return a Cursor or an array of Cursors");
     }
@@ -236,6 +264,7 @@ Meteor.smartPublish = function(name, callback) {
     }
 
     var wrappers = [];
+    wrappers.push(context);
     _.each(cursors, function(c) {
       if (!c._cursorDescription) {
         throw new Meteor.Error("Unable to get cursor's collection name");
@@ -250,7 +279,7 @@ Meteor.smartPublish = function(name, callback) {
     this.ready();
     this.onStop(function() {
       _.forEach(wrappers, function(x) {
-        x.observer.stop();
+        x.stop();
       });
     });
   });
