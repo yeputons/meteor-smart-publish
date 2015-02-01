@@ -38,7 +38,6 @@ if (Meteor.isServer) {
 
     var self = this;
     var handle = CallbacksA.find({enabled: true}).observeChanges(new AlteringObserver('CallbacksA', self));
-    self.ready();
     self.onStop(function() {
       handle.stop();
     });
@@ -54,7 +53,6 @@ if (Meteor.isServer) {
 
     var self = this;
     var handle = CallbacksA.find({enabled: true}).observeChanges(new AlteringObserver('CallbacksA', self));
-    self.ready();
     self.onStop(function() {
       handle.stop();
     });

@@ -28,6 +28,7 @@ Meteor.smartPublish = function(name, callback) {
 
     var context = Object.create(publication);
     _.extend(context, new CallbacksWrapper(getCollectionByName));
+    context.ready = undefined;
     var cursors = callback.apply(context, arguments);
     var wrappers = getWrappersFromCallbackResult(getCollectionByName, cursors);
     wrappers.push(context);

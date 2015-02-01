@@ -88,7 +88,8 @@ Custom datasets instead of cursors
 ----------------------------------
 As mentioned in #9, there can be some situations where you want to customize data set: you may want to alter data sent to client
 in some way or do even more evil stuff with `this.added`/`this.changed`/`this.removed` callbacks. You're free to use these callbacks
-both in the publish function and in dependency functions.
+both in the publish function and in dependency functions. Do not call `this.ready()` in either one - it's automatically called
+after top-level callback (i.e. parameter of `smartPublish`) finishes its execution.
 
 Known issues and limitations
 ============================
