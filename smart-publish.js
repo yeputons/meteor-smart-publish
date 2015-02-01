@@ -132,20 +132,9 @@ CollectionItem.prototype.updateChildren = function(fields, removeAll) {
     if (!removeAll) {
       var context = new CallbacksWrapper(self.collection.publication.getCollectionByName);
       var cursors = dep.callback.apply(context, [self.mergedData]);
-      if (!cursors) cursors = [];
-      if (isCursor(cursors)) cursors = [cursors];
-      if (!_.isArray(cursors)) {
-        throw new Meteor.Error("Dependency function can only return a Cursor or an array of Cursors");
-      }
-      if (!_.every(cursors, isCursor)) {
-        throw new Meteor.Error("Dependency function returned an array of non-Cursors");
-      }
-
-      var wrappers = self.children[dep.id] = [];
+      var wrappers = getWrappersFromCallbackResult(self.collection.publication.getCollectionByName, cursors);
       wrappers.push(context);
-      _.each(cursors, function(c) {
-        wrappers.push(new CursorWrapper(c, self.collection.publication.getCollectionByName(getCursorCollectionName(c))));
-      });
+      self.children[dep.id] = wrappers;
     }
     toRemove.forEach(function(args) {
       args[0].smartRemoved(args[1], args[2]);
@@ -221,6 +210,23 @@ function CallbacksWrapper(getCollectionByName) {
   }
 };
 
+function getWrappersFromCallbackResult(getCollectionByName, cursors) {
+  if (!cursors) cursors = [];
+  if (isCursor(cursors)) cursors = [cursors];
+  if (!_.isArray(cursors)) {
+    throw new Meteor.Error("Smart-publish callback function can only return a Cursor or an array of Cursors");
+  }
+  if (!_.every(cursors, isCursor)) {
+    throw new Meteor.Error("Smart-publish callback function returned an array of non-Cursors");
+  }
+
+  var wrappers = [];
+  _.each(cursors, function(c) {
+    wrappers.push(new CursorWrapper(c, getCollectionByName(getCursorCollectionName(c))));
+  });
+  return wrappers;
+}
+
 Meteor.smartPublish = function(name, callback) {
   Meteor.publish(name, function() {
     var publication = this;
@@ -252,21 +258,8 @@ Meteor.smartPublish = function(name, callback) {
     var context = Object.create(publication);
     _.extend(context, new CallbacksWrapper(getCollectionByName));
     var cursors = callback.apply(context, arguments);
-
-    if (!cursors) cursors = [];
-    if (isCursor(cursors)) cursors = [cursors];
-    if (!_.isArray(cursors)) {
-      throw new Meteor.Error("Publish function can only return a Cursor or an array of Cursors");
-    }
-    if (!_.every(cursors, isCursor)) {
-      throw new Meteor.Error("Publish function returned an array of non-Cursors");
-    }
-
-    var wrappers = [];
+    var wrappers = getWrappersFromCallbackResult(getCollectionByName, cursors);
     wrappers.push(context);
-    _.each(cursors, function(c) {
-      wrappers.push(new CursorWrapper(c, getCollectionByName(getCursorCollectionName(c))));
-    });
     this.ready();
     this.onStop(function() {
       _.forEach(wrappers, function(x) {
