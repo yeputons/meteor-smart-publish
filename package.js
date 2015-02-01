@@ -6,6 +6,7 @@ Package.describe({
 });
 
 Package.on_use(function (api, where) {
+  api.add_files('utils.js', ['server']);
   api.add_files('smart-publish.js', ['server']);
 });
 
