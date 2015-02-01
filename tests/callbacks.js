@@ -137,6 +137,10 @@ if (Meteor.isClient) {
   Tinytest.addAsync('callbacks-deep: deep subscription start', function(test, next) {
     subscr = Meteor.subscribe('callbacks_items_deep', function() {
       testAVals(test, [20,10,11,5,14,15,7,18,19,9]);
+      test.equal(CallbacksA.findOne({val:  5}).l, 10, '`l` is invalid for item with val=5');
+      test.equal(CallbacksA.findOne({val:  5}).r, 11, '`r` is invalid for item with val=5');
+      test.equal(CallbacksA.findOne({val: 11}).l, 22, '`l` is invalid for item with val=11');
+      test.equal(CallbacksA.findOne({val: 11}).r, 23, '`r` is invalid for item with val=11');
       next();
     });
   });
