@@ -27,7 +27,7 @@ if (Meteor.isServer) {
       uplink.changed(collectionName, id, fields);
     };
     this.removed = function(id) {
-      uplink.removed(collectionName);
+      uplink.removed(collectionName, id);
     }
   }
 
@@ -45,8 +45,8 @@ if (Meteor.isServer) {
   });
   Meteor.smartPublish('callbacks_items_deep', function() {
     this.addDependency('CallbacksA', ['l', 'r'], function(fields) {
+      var self = this;
       var handle = CallbacksA.find({val: {$in: [fields.l, fields.r]}}).observeChanges(new AlteringObserver('CallbacksA', self));
-      self.ready();
       self.onStop(function() {
         handle.stop();
       });
@@ -104,7 +104,6 @@ if (Meteor.isClient) {
 
   Tinytest.addAsync('callbacks: deep subscription start', function(test, next) {
     subscr = Meteor.subscribe('callbacks_items_deep', function() {
-      test.equal(CallbacksA.find().count(), 0, 'CallbacksA is not empty');
       testAVals(test, [20,10,11,5,14,15,7,18,19,9]);
       next();
     });
