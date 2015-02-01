@@ -3,10 +3,13 @@ meteor-smart-publish
 
 Rather smart publications for Meteor.
 
-This package is developed as fast alternative of https://github.com/Diggsey/meteor-reactive-publish and
-production-ready and working alternative of https://github.com/erundook/meteor-publish-with-relations, which
-has several issues. I've decided that fixing all of them will make me to re-write all code and here is what I've done
-instead.
+This package provides `Meteor.smartPublish` as an addition to `Meteor.publish`. Improvements and features:
+
+1. Reactive joins: just call `this.addDependency` and describe any join you want (details below)
+2. You can return several cursors from the same collection
+3. You can mix returning cursors and calling `this.added`/`this.changed`/`this.removed` - latter is considered as one extra cursor
+4. Two previous things work inside dependency functions as well
+5. Dependencies are recursively tracked with reference counting, duplicates and extra re-computations do not occur
 
 _WARNING_: this version this lacks big corner tests and the code is relatively complex, so I kindly ask you
 not to use this in production, because awful things may happen in case of bugs. I'll be happy if you help me
