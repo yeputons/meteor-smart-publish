@@ -1,6 +1,6 @@
 Package.describe({
   summary: "Smart publications with joins and multiple cursors from the same collection",
-  version: "0.1.8",
+  version: "0.2.0",
   git: "https://github.com/yeputons/meteor-smart-publish.git",
   name: "mrt:smart-publish"
 });
