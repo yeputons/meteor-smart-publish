@@ -1,6 +1,6 @@
 Package.describe({
   summary: "Smart publications with joins and multiple cursors from the same collection",
-  version: "0.2.0",
+  version: "0.2.1",
   git: "https://github.com/yeputons/meteor-smart-publish.git",
   name: "mrt:smart-publish"
 });
@@ -10,6 +10,9 @@ Package.onUse(function (api, where) {
   api.addFiles('collection-items.js', ['server']);
   api.addFiles('wrappers.js', ['server']);
   api.addFiles('smart-publish.js', ['server']);
+  api.use('underscore');
+  api.use('random');
+  api.use('ejson');
 });
 
 Package.onTest(function (api) {

@@ -1,3 +1,6 @@
+## v0.2.1
+* Fixed #16 by adding `underscore`, `ejson` and `random` packages to dependencies, should work as of Meteor 1.2.0.2
+
 ## v0.2.0
 * #9: now `this.added`/`this.changed`/`this.removed` callbacks can be called in both publish function and dependency functions: it's treated as if one more cursor were returned, so you can both return cursors and use these callbacks
 * `this.ready` was explicitly removed in smartPublish callback, because it's automatically called after its end
