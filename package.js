@@ -10,8 +10,9 @@ Package.onUse(function (api, where) {
   api.addFiles('collection-items.js', ['server']);
   api.addFiles('wrappers.js', ['server']);
   api.addFiles('smart-publish.js', ['server']);
+  api.versionsFrom('1.2.0.2');
   api.use('underscore');
-  api.use('random');
+  api.use('random', '');
   api.use('ejson');
 });
 
